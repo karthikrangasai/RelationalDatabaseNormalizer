@@ -4,25 +4,28 @@ import java.util.*;
 
 class DBS_Assgn {
 	public static void main(String[] args){
-		String relation = "R(A,B,C,D)";
-		String funcDep = "A,B->C;A,B->D;C->B;B->D";
+		// String relation = "R(A,B,C,D)";
+		// String funcDep = "A,B->C;A,B->D;C->B;B->D";
+		String relation = "R(A,B,C,D,E)";
+		String funcDep = "A,B->C;A,B->D;B->E";
 		// String relation = args[0];
 		// String funcDep = args[1]; 
 
 		Relation R = new Relation(relation, ((relation.length() - 2)/2), funcDep);
-		System.out.println(R);
-		R.printAttributes();
-		R.printFDs();
+		System.out.println("Input Relation is: ");System.out.println(R);
+		System.out.println("Attributes of the relation are: ");R.printAttributes();
+		System.out.println("Functional Dependencies of the relation are: ");R.printFDs();
 
-		System.out.println("About to compute closures:");
 		R.computeClosures();
-		System.out.println("Finished computing closures.");
+		System.out.println("Closures of all the combinations of attributes are: ");
 		for(Closure c : R.getClosures()){
 			System.out.println(c);
 		}
 
-		// R.computeKeys();
-		// R.getPrimaryKey();
+		R.computeSuperKeys();
+		System.out.println("Super Keys are: ");R.printSuperKeys();
+		R.computeCandiadteKey();
+		System.out.println("Candidate Keys are: ");R.printCandidateKeys();
 	}
 }
 

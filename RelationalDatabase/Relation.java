@@ -8,8 +8,8 @@ public class Relation {
 	private String functionaldependencies;
 	private int noOfAttr;
 	private ArrayList<Attribute> attributes;
-	private ArrayList<ArrayList<Attribute>> keys;
-	private ArrayList<Attribute> primary_key;
+	private ArrayList<ArrayList<Attribute>> superKeys;
+	private ArrayList<ArrayList<Attribute>> candidate_key;
 	private ArrayList<FunctionalDependency> funcDeps;
 	private ArrayList<Closure> closures;
 	// public Node[] attributes;
@@ -30,8 +30,8 @@ public class Relation {
 			attributes.add(new Attribute(separate_attributes.nextToken()));
 		}
 
-		keys = null;
-		primary_key = null;
+		superKeys = null;
+		candidate_key = null;
 		
 		StringTokenizer separate_funcDeps = new StringTokenizer(functionalDeps, ";");
 		while(separate_funcDeps.hasMoreTokens()){
@@ -47,15 +47,10 @@ public class Relation {
 		this.closures = new ArrayList<Closure>();
 		ArrayList<Attribute> attributeList = new ArrayList<Attribute>();
 		this.computeClosures(0, attributeList);
-		System.out.println(this.closures.size());
 	}
 	public void computeClosures(int index, ArrayList<Attribute> attributeList){
 		for(int i=index; i < this.noOfAttr; i++){
 			attributeList.add(attributes.get(i));
-			StringBuilder s = new StringBuilder();
-			for(int j=0; j<index;j++){
-				s.append("	");
-			}
 			Closure computedClosure = Closure.computeClosure(attributeList, this.funcDeps);
 			if(computedClosure != null){
 				this.closures.add(computedClosure);
@@ -65,22 +60,24 @@ public class Relation {
 			}
 			attributeList.remove(attributeList.size() - 1);
 		}
+		Utils.sortClosure(this.closures);
 	}
 
-	public void computeKeys(){
-		keys = new ArrayList<ArrayList<Attribute>>();
+	public void computeSuperKeys(){
+		superKeys = new ArrayList<ArrayList<Attribute>>();
 		for(Closure c : closures){
 			if(c.getRightSide().equals(attributes)){
-				keys.add(attributes);
+				superKeys.add(c.getLeftSide());
 			}
 		}
 	}
 	
-	public void getPrimaryKey(){
-		this.key = keys.get(0);
-		for(ArrayList<Attribute> k : keys){
-			if(k.size() <= this.key.size()){
-				key = k;
+	public void computeCandiadteKey(){
+		int len = Utils.getMinimalSize(superKeys);
+		this.candidate_key = new ArrayList<ArrayList<Attribute>>();
+		for(ArrayList<Attribute> k : superKeys){
+			if(k.size() == len){
+				candidate_key.add(k);
 			}
 		}
 	}
@@ -88,7 +85,7 @@ public class Relation {
 	// Printing Methods
 	public void printFDs(){
 		for(FunctionalDependency f : funcDeps){
-			System.out.println(f);
+			System.out.println(f + " ");
 		}
 	}
 
@@ -101,19 +98,23 @@ public class Relation {
 	}
 
 	public void printAttributes(){
-		System.out.print("R(");
 		for(Attribute a : this.attributes){
-			System.out.print(a.getName() + ",");
+			System.out.print(a.getName() + " ");
 		}
-		System.out.println(")");
+		System.out.println("");
 	}
 
-	public void printKeys(){
-		System.out.print("R(");
-		for(Attribute k : this.keys){
-			System.out.print(k.getName() + ",");
+	public void printSuperKeys(){
+		for(ArrayList<Attribute> k : this.superKeys){
+			System.out.print(Utils.stringifyAttributeList(k) + " ");
 		}
-		System.out.println(")");
+		System.out.println("");
+	}
+	public void printCandidateKeys(){
+		for(ArrayList<Attribute> k : this.candidate_key){
+			System.out.print(Utils.stringifyAttributeList(k) + " ");
+		}
+		System.out.println("");
 	}
 
 	public String toString(){
@@ -129,8 +130,8 @@ public class Relation {
 	public ArrayList<Attribute> getAttributes(){
 		return this.attributes;
 	}
-	public ArrayList<Attribute> getKeys(){
-		return this.keys;
+	public ArrayList<ArrayList<Attribute>> getKeys(){
+		return this.superKeys;
 	}
 	public ArrayList<Closure> getClosures(){
 		return this.closures;

@@ -22,39 +22,44 @@ public class Closure{
 			right.add(a);
 		}
 		
-		ArrayList<Attribute> oldLeftAttributes = null;
+		ArrayList<Attribute> oldLeftAttributes = new ArrayList<Attribute>();
 		do{
-			oldLeftAttributes = right;
+			Utils.copyAttributes(right, oldLeftAttributes);
 			for(FunctionalDependency f : funcDeps){
 				boolean hasAllAttributes = true;
 				
 				ArrayList<Attribute> fd_leftSide = f.getLeftSideAttributes();
+				ArrayList<Attribute> fd_rightSide = f.getRightSideAttributes();
 				
 				// Utils.printAttributeList(fd_leftSide);
 				
-				if(fd_leftSide.size() <= left.size()){
-					Utils.printAttributeList(fd_leftSide);
+				if(fd_leftSide.size() <= right.size()){
+					// Utils.printAttributeList(fd_leftSide);
 					for(Attribute a : fd_leftSide){
-						if(!left.contains(a)){
+						if(!right.contains(a)){
 							hasAllAttributes = false;
 							break;
 						}
 					}
 					if(hasAllAttributes){
-						for(Attribute a : fd_leftSide){
-							right.add(a);
+						for(Attribute a : fd_rightSide){
+							if(!right.contains(a)){
+								right.add(a);
+							}
+							
 						}
 					}
 				}
 			}
 		}
 		while(!left.equals(oldLeftAttributes));
-		
+		Utils.sortAttributes(right);
 		return new Closure(left, right);
 	}
 
 	public String toString(){
-		String plus = ")&#8314 = {";
+		// Character.toString((char)&#8314)
+		String plus = ")+ = {";
 		String s = this.stringifyAttributes();
 		StringTokenizer st = new StringTokenizer(s, ";");
 		return ("(" + st.nextToken() + plus + st.nextToken() + "}");
