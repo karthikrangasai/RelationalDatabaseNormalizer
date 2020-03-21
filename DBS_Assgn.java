@@ -13,19 +13,23 @@ class DBS_Assgn {
 
 		Relation R = new Relation(relation, ((relation.length() - 2)/2), funcDep);
 		System.out.println("Input Relation is: ");System.out.println(R);
-		System.out.println("Attributes of the relation are: ");R.printAttributes();
-		System.out.println("Functional Dependencies of the relation are: ");R.printFDs();
+		System.out.println("\nAttributes of the relation are: ");R.printAttributes();
+		System.out.println("\nFunctional Dependencies of the relation are: ");R.printFDs();
 
 		R.computeClosures();
-		System.out.println("Closures of all the combinations of attributes are: ");
+		System.out.println("\nClosures of all the combinations of attributes are: ");
 		for(Closure c : R.getClosures()){
 			System.out.println(c);
 		}
 
 		R.computeSuperKeys();
-		System.out.println("Super Keys are: ");R.printSuperKeys();
+		System.out.println("\nSuper Keys are: ");R.printSuperKeys();
 		R.computeCandiadteKey();
 		System.out.println("Candidate Keys are: ");R.printCandidateKeys();
+
+		System.out.println("\nChecking for highest Normal Form: ");
+		System.out.println("1NF: We assume all the attributes have atomic values. Hence all are in 1NF.");
+		System.out.println("2NF: ");
 	}
 }
 

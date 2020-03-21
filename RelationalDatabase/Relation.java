@@ -82,6 +82,10 @@ public class Relation {
 		}
 	}
 
+	public ArrayList<Attribute> getPrimaryKey(){
+		return this.candidate_key.get(0);
+	}
+
 	// Printing Methods
 	public void printFDs(){
 		for(FunctionalDependency f : funcDeps){
