@@ -22,14 +22,23 @@ class DBS_Assgn {
 			System.out.println(c);
 		}
 
+		System.out.print("\n    Essential Attributes are: ");R.printEssentialAttributes();
+		System.out.print("Non-Essential Attributes are: ");R.printNonEssentialAttributes();
+
 		R.computeSuperKeys();
-		System.out.println("\nSuper Keys are: ");R.printSuperKeys();
+		System.out.print("\n    Super Keys are: ");R.printSuperKeys();
 		R.computeCandiadteKey();
-		System.out.println("Candidate Keys are: ");R.printCandidateKeys();
+		System.out.print("Candidate Keys are: ");R.printCandidateKeys();
+
+		System.out.print("\n    Key Attributes are: ");R.printKeyAttributes();
+		System.out.print("Non-Key Attributes are: ");R.printNonKeyAttributes();
+	
 
 		System.out.println("\nChecking for highest Normal Form: ");
-		System.out.println("1NF: We assume all the attributes have atomic values. Hence all are in 1NF.");
-		System.out.println("2NF: ");
+		// System.out.println("1NF: We assume all the attributes have atomic values. Hence all are in 1NF.");
+		// System.out.println("2NF: ");
+		R.computeNormalForm();
+		R.printNormalForms();
 	}
 }
 

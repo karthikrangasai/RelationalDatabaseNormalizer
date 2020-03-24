@@ -1,15 +1,15 @@
 package RelationalDatabase;
 
 public class Attribute{
-	// Class Members
+	///////////////////////// Class Members /////////////////////////
 	private String name;
 	
-	// Class Constructors
+	///////////////////////// Class Constructors /////////////////////////
 	public Attribute(String name){
 		this.name = name;
 	}
 
-	// Class Methods
+	///////////////////////// Class Members /////////////////////////
 	public boolean equals(Object o){
 		Attribute a = (Attribute)o;
 		return this.name.equals(a.getName());
@@ -19,7 +19,7 @@ public class Attribute{
 		return this.name;
 	}
 
-	// Class getters and setters
+	///////////////////////// Getter and Setter Methods /////////////////////////
 	public String getName(){
 		return this.name;
 	}
