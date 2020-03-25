@@ -4,10 +4,11 @@ import java.util.*;
 
 class DBS_Assgn {
 	public static void main(String[] args){
-		// String relation = "R(A,B,C,D)";
+		String relation = "R(A,B,C,D)";
 		// String funcDep = "A,B->C;A,B->D;C->B;B->D";
-		String relation = "R(A,B,C,D,E)";
-		String funcDep = "A,B->C;A,B->D;B->E";
+		String funcDep = "A,B->C,D;C->B;B->D";
+		// String relation = "R(A,B,C,D,E)";
+		// String funcDep = "A,B->C;A,B->D;B->E";
 		// String relation = args[0];
 		// String funcDep = args[1]; 
 
@@ -35,10 +36,11 @@ class DBS_Assgn {
 	
 
 		System.out.println("\nChecking for highest Normal Form: ");
-		// System.out.println("1NF: We assume all the attributes have atomic values. Hence all are in 1NF.");
-		// System.out.println("2NF: ");
 		R.computeNormalForm();
 		R.printNormalForms();
+
+		System.out.println("Minimal Cover of the relation is:");
+		R.computeMinimalCover();
 	}
 }
 

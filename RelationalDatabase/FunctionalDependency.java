@@ -81,15 +81,9 @@ public class FunctionalDependency{
 		}
 		return isNonKey;
 	}
-	// private boolean rightBelongsTo(ArrayList<ArrayList<Attribute>> candidate_keys){
-	// 	boolean belongs = true;
-	// 	for(ArrayList<Attribute> key : candidate_keys){
-
-	// 	}
-	// }
 
 	public boolean isMultivaluedDependency(){
-		return (y.size() > 1) ? false : true;
+		return (this.y.size() > 1) ? true : false;
 	}
 
 	///////////////////////// Printing Methods /////////////////////////

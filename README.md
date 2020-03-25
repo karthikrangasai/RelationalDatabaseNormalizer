@@ -7,5 +7,4 @@
 ## TO-DO
 * Methods to check if two sets of FDs are equivalent
 * Getting Minimal Cover of FDs
-* 2NF, 3NF, BCNF checking methods
 * Decomposition method

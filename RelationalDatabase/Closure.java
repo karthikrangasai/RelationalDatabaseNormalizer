@@ -52,6 +52,44 @@ public class Closure{
 		return new Closure(left, right);
 	}
 
+	public static ArrayList<Closure> computeClosure(ArrayList<FunctionalDependency> F){
+		ArrayList<Closure> F_Closure = new ArrayList<Closure>();
+		for(FunctionalDependency f : F){
+			Closure c = computeClosure(f.getLeftSideAttributes(), F);
+			if(!F_Closure.contains(c)){
+				F_Closure.add(c);
+			}
+		}
+		return new ArrayList<>(F_Closure);
+	}
+
+	public static boolean equivalentClosures(ArrayList<FunctionalDependency> E, ArrayList<FunctionalDependency> F){
+		ArrayList<Closure> E_Closure = new ArrayList<Closure>();
+		ArrayList<Closure> F_Closure = new ArrayList<Closure>();
+		for(FunctionalDependency e : E){
+			E_Closure.add(computeClosure(e.getLeftSideAttributes(), E));
+		}
+		for(FunctionalDependency f : F){
+			F_Closure.add(computeClosure(f.getLeftSideAttributes(), F));
+		}
+		System.out.println(E_Closure);
+		System.out.println(F_Closure);
+		if(E_Closure.containsAll(F_Closure) || F_Closure.containsAll(E_Closure)){
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public boolean equals(Object O){
+		Closure c = (Closure)O;
+		if((this.getLeftSide().equals(c.getLeftSide())) && (this.getRightSide().equals(c.getRightSide()))){
+			return true;
+		}else {
+			return false;
+		}
+	}
+
 	///////////////////////// Printing Methods /////////////////////////
 	public String toString(){
 		String plus = ")+ = {";

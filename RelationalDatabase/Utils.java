@@ -41,6 +41,13 @@ public class Utils{
 		return copyTo;
 	}
 
+	public static ArrayList<FunctionalDependency> copyFunctionalDependencies(ArrayList<FunctionalDependency> copyFrom, ArrayList<FunctionalDependency> copyTo){
+		for(FunctionalDependency a : copyFrom){
+			copyTo.add(a);
+		}
+		return copyTo;
+	}
+
 	///////////////////////// Sorting Methods /////////////////////////
 	public static void sortAttributes(ArrayList<Attribute> attributes){
 		Collections.sort(attributes, new SortAttr());
