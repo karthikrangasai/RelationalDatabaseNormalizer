@@ -8,12 +8,12 @@ public class Relation {
 	private String functionaldependencies;
 	private int noOfAttr;
 	private ArrayList<Attribute> attributes;
-	private Set<Attribute> essentialAttributes;
-	private Set<Attribute> nonEssentialAttributes;
+	private ArrayList<Attribute> essentialAttributes;
+	private ArrayList<Attribute> nonEssentialAttributes;
 	private ArrayList<ArrayList<Attribute>> superKeys;
 	private ArrayList<ArrayList<Attribute>> candidate_key;
-	private Set<Attribute> keyAttributes;
-	private Set<Attribute> nonKeyAttributes;
+	private ArrayList<Attribute> keyAttributes;
+	private ArrayList<Attribute> nonKeyAttributes;
 	private ArrayList<FunctionalDependency> funcDeps;
 	private ArrayList<FunctionalDependency> minimalCover;
 	private ArrayList<Closure> closures;
@@ -52,16 +52,20 @@ public class Relation {
 
 	/** Computes Essential Attributes for a relation */
 	private void getEssentialAttributes(ArrayList<FunctionalDependency> funcDeps){
-		this.essentialAttributes = new HashSet<Attribute>();
-		this.nonEssentialAttributes = new HashSet<Attribute>(this.attributes);
+		HashSet<Attribute> eA = new HashSet<Attribute>();
+		HashSet<Attribute> nEA = new HashSet<Attribute>(this.attributes);
 		Set<Attribute> S = new HashSet<Attribute>();
 		for(FunctionalDependency f : funcDeps){
-			this.essentialAttributes.addAll(f.getLeftSideAttributes());
+			eA.addAll(f.getLeftSideAttributes());
 			S.addAll(f.getRightSideAttributes());
-			this.essentialAttributes.addAll(f.getRightSideAttributes());
+			eA.addAll(f.getRightSideAttributes());
 		}
-		this.essentialAttributes.removeAll(S);
-		this.nonEssentialAttributes.removeAll(this.essentialAttributes);
+		eA.removeAll(S);
+		nEA.removeAll(eA);
+		this.essentialAttributes = new ArrayList<Attribute>(eA);
+		Utils.sortAttributes(this.essentialAttributes);
+		this.nonEssentialAttributes = new ArrayList<Attribute>(nEA);
+		Utils.sortAttributes(this.nonEssentialAttributes);
 	}
 
 	/** Computes Closures of all Attributes combinantions 
@@ -69,8 +73,8 @@ public class Relation {
 	public void computeClosures(){	// Driver Method
 		this.closures = new ArrayList<Closure>();
 		this.getEssentialAttributes(funcDeps);
-		this.closures.add(Closure.computeClosure(new ArrayList<Attribute>(this.essentialAttributes), this.funcDeps));
-		this.computeClosures(0, new ArrayList<Attribute>(this.essentialAttributes), new ArrayList<Attribute>(this.nonEssentialAttributes));
+		this.closures.add(Closure.computeClosure(this.essentialAttributes, this.funcDeps));
+		this.computeClosures(0, this.essentialAttributes, this.nonEssentialAttributes);
 	}
 	// Actual Method
 	public void computeClosures(int index, ArrayList<Attribute> essentialAttributeList, ArrayList<Attribute> nonEssentialAttributeList){
@@ -90,11 +94,14 @@ public class Relation {
 
 	/** Computes Super Keys for a relation */
 	public void computeSuperKeys(){
-		superKeys = new ArrayList<ArrayList<Attribute>>();
+		this.superKeys = new ArrayList<ArrayList<Attribute>>();
 		for(Closure c : closures){
 			if(c.getRightSide().equals(attributes)){
 				superKeys.add(c.getLeftSide());
 			}
+		}
+		for(ArrayList<Attribute> key : this.superKeys){
+			Utils.sortAttributes(key);
 		}
 	}
 	
@@ -102,15 +109,19 @@ public class Relation {
 	public void computeCandiadteKey(){
 		int len = this.getMinimalSize();
 		this.candidate_key = new ArrayList<ArrayList<Attribute>>();
-		this.keyAttributes = new HashSet<Attribute>();
+		HashSet<Attribute> kA = new HashSet<Attribute>();
+		HashSet<Attribute> nKA = new HashSet<Attribute>(this.attributes);
 		for(ArrayList<Attribute> k : superKeys){
 			if(k.size() == len){
 				candidate_key.add(k);
-				this.keyAttributes.addAll(k);
+				kA.addAll(k);
 			}
 		}
-		this.nonKeyAttributes = new HashSet<Attribute>(this.attributes);
-		this.nonKeyAttributes.removeAll(this.keyAttributes);
+		this.keyAttributes = new ArrayList<Attribute>(kA);
+		Utils.sortAttributes(this.keyAttributes);
+		nKA.removeAll(kA);
+		this.nonKeyAttributes  = new ArrayList<Attribute>(nKA);
+		Utils.sortAttributes(this.nonKeyAttributes);
 	}
 	private int getMinimalSize(){
 		int size = this.superKeys.size();
@@ -173,9 +184,9 @@ public class Relation {
 	public void computeMinimalCover(){
 		this.minimalCover = new ArrayList<FunctionalDependency>();
 		for(FunctionalDependency f : this.funcDeps){
-			System.out.println("For " + f + " :");
+			// System.out.println("For " + f + " :");
 			if(f.isMultivaluedDependency()){
-				System.out.println("	It is a multivalues FD");
+				// System.out.println("	It is a multivalues FD");
 				String funcDep = f.getName();
 				StringTokenizer st = new StringTokenizer(funcDep, "->");
 				String leftAttr = st.nextToken();
@@ -183,7 +194,7 @@ public class Relation {
 				sb.append(leftAttr);sb.append("->");
 				for(Attribute a : f.getRightSideAttributes()){
 					sb.append(a.getName());
-					System.out.println("		" + sb.toString());
+					// System.out.println("		" + sb.toString());
 					this.minimalCover.add(new FunctionalDependency(this, sb.toString()));
 					sb.deleteCharAt(sb.length()-1);
 				}
@@ -192,10 +203,15 @@ public class Relation {
 			}
 		}
 		ArrayList<Closure> minimalCoverClosure = Closure.computeClosure(this.minimalCover); // Computing Minimal Cover Closure
-		System.out.println("Closure of Minimal Cover: " + minimalCoverClosure);
+		System.out.println("  1) Closure of Minimal Cover: ");
+		for(Closure c : minimalCoverClosure){
+			System.out.println("      " + c);
+		}
 		ArrayList<FunctionalDependency> minimalCoverCopy = new ArrayList<FunctionalDependency>();
 		Utils.copyFunctionalDependencies(this.minimalCover, minimalCoverCopy);
-		System.out.println("Minimal Cover Copy: " + minimalCoverCopy);
+		System.out.println("  2) Minimal Cover After Step 2: (minimalCoverCopy)");
+		System.out.println("      " + minimalCoverCopy);
+		System.out.println("\n  3) Starting Step 3: ");
 		for(int i=0; i<minimalCoverCopy.size(); i++){
 			FunctionalDependency tempFD = minimalCoverCopy.get(i);
 			ArrayList<Attribute> tempFDLeft = tempFD.getLeftSideAttributes();
@@ -204,14 +220,17 @@ public class Relation {
 					Attribute tempA = tempFDLeft.get(j);
 					tempFDLeft.remove(tempA);
 					// If Equivalent
-					System.out.print("Minimal Cover Copy: ");
+					System.out.print("    -> Minimal Cover Copy: ");
 					for(FunctionalDependency f : minimalCoverCopy){
 						System.out.print(f + "  ");
 					}System.out.println("");
 					ArrayList<Closure> minimalCoverCopyClosure = Closure.computeClosure(minimalCoverCopy);
-					System.out.println("Closure of Minimal Cover Copy: " + minimalCoverCopyClosure);
+					System.out.println("    -> Closure of Minimal Cover Copy: ");
+					for(Closure c : minimalCoverCopyClosure){
+						System.out.println("       " + c);
+					}
 					boolean equivalent = minimalCoverClosure.equals(minimalCoverCopyClosure) || minimalCoverClosure.containsAll(minimalCoverCopyClosure) || minimalCoverCopyClosure.containsAll(minimalCoverClosure);
-					System.out.println(equivalent);
+					System.out.println("    -> Are they Equivalent: " + equivalent + "\n");
 					if(equivalent){
 						break;
 					} else {
@@ -220,17 +239,27 @@ public class Relation {
 				}
 			}
 		}
-		System.out.println("Minimal Cover Copy: " + minimalCoverCopy);
+		System.out.println("    Minimal Cover After Step 3: (minimalCoverCopy)");
+		System.out.println("      " + minimalCoverCopy);
+		System.out.println("\n  4) Starting Step 4: ");
+		System.out.println("    -> Minimal Cover Copy: " + minimalCoverCopy);
 		for(int i=0; i<minimalCoverCopy.size(); i++){
 			FunctionalDependency tempFD = minimalCoverCopy.get(i);
+			System.out.println("\n    -> Removing: " + tempFD);
 			minimalCoverCopy.remove(tempFD);
 			ArrayList<Closure> minimalCoverCopyClosure = Closure.computeClosure(minimalCoverCopy);
-			System.out.println("Closure of Minimal Cover Copy: " + minimalCoverCopyClosure);
+			System.out.println("    -> Closure of Minimal Cover Copy: ");
+			for(Closure c : minimalCoverCopyClosure){
+				System.out.println("       " + c);
+			}
 			boolean equivalent = minimalCoverClosure.equals(minimalCoverCopyClosure) || minimalCoverClosure.containsAll(minimalCoverCopyClosure) || minimalCoverCopyClosure.containsAll(minimalCoverClosure);
 			if(!equivalent){
-				minimalCoverCopy.add(tempFD);
+				minimalCoverCopy.add(i, tempFD);
 			}
 		}
+
+		System.out.println("\n    Minimal Cover After Step 4: (minimalCoverCopy)");
+		System.out.println("      " + minimalCoverCopy);
 	}
 
 	///////////////////////// Printing Methods /////////////////////////
@@ -251,7 +280,7 @@ public class Relation {
 
 	public void printFDs(){
 		for(FunctionalDependency f : funcDeps){
-			System.out.println(f + " ");
+			System.out.println("   >" + f);
 		}
 	}
 

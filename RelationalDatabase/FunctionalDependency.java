@@ -34,11 +34,15 @@ public class FunctionalDependency{
 	}
 
 	///////////////////////// Class Methods /////////////////////////
-	public void computeNormalForm(Set<Attribute> keyAttributes, Set<Attribute> nonKeyAttributes, ArrayList<ArrayList<Attribute>> candidate_key){				
+	public void computeNormalForm(ArrayList<Attribute> keyAttributes, ArrayList<Attribute> nonKeyAttributes, ArrayList<ArrayList<Attribute>> candidate_key){				
 		// 2NF Checking
 		boolean is2NF;
-		if(this.isNonKeyAttribute(this.y, nonKeyAttributes) && !isFullKey(this.x, candidate_key)){
-			is2NF = false;
+		if(this.isNonKeyAttribute(this.y, nonKeyAttributes)){
+			if(isPartialKey(this.x, candidate_key)){
+				is2NF = false;
+			} else {
+				is2NF = true;
+			}
 		} else {
 			is2NF = true;
 		}
@@ -49,7 +53,7 @@ public class FunctionalDependency{
 
 		// 3NF Checking
 		if(this.normalForm == 2){
-			if((isFullKey(this.x, candidate_key)) || (isFullKey(this.y, candidate_key) || isPartialKey(this.y, keyAttributes))){
+			if((isFullKey(this.x, candidate_key)) || (isFullKey(this.y, candidate_key) || (isPartialKey(this.y, candidate_key) && isNonKeyAttribute(this.y, nonKeyAttributes)))){
 				// System.out.println("Setting 3NF");
 				this.normalForm = 3;
 			}
@@ -65,18 +69,22 @@ public class FunctionalDependency{
 	private boolean isFullKey(ArrayList<Attribute> attributes, ArrayList<ArrayList<Attribute>> candidate_key){
 		return candidate_key.contains(attributes);
 	}
-	private boolean isFullKey(ArrayList<Attribute> attributes, Set<Attribute> keyAttributes){
-		return keyAttributes.containsAll(attributes);
+	private boolean isPartialKey(ArrayList<Attribute> attributes, ArrayList<ArrayList<Attribute>> candidate_key){
+		return !candidate_key.contains(attributes);
 	}
-	private boolean isPartialKey(ArrayList<Attribute> attributes, Set<Attribute> keyAttributes){
-		return !keyAttributes.containsAll(attributes);
-	}
-	private boolean isNonKeyAttribute(ArrayList<Attribute> attributes, Set<Attribute> nonKeyAttributes){
+	// private boolean isFullKey(ArrayList<Attribute> attributes, ArrayList<Attribute> keyAttributes){
+	// 	return keyAttributes.containsAll(attributes);
+	// }
+	// private boolean isPartialKey(ArrayList<Attribute> attributes, ArrayList<Attribute> keyAttributes){
+	// 	return !keyAttributes.containsAll(attributes);
+	// }
+	private boolean isNonKeyAttribute(ArrayList<Attribute> attributes, ArrayList<Attribute> nonKeyAttributes){
 		boolean isNonKey = true;
 		for(Attribute a : attributes){
-			if(!nonKeyAttributes.contains(a)){
+			if(nonKeyAttributes.contains(a)){
+				isNonKey = true;
+			} else {
 				isNonKey = false;
-				break;
 			}
 		}
 		return isNonKey;

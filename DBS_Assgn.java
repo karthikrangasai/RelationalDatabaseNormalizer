@@ -7,39 +7,44 @@ class DBS_Assgn {
 		String relation = "R(A,B,C,D)";
 		// String funcDep = "A,B->C;A,B->D;C->B;B->D";
 		String funcDep = "A,B->C,D;C->B;B->D";
+		
 		// String relation = "R(A,B,C,D,E)";
 		// String funcDep = "A,B->C;A,B->D;B->E";
+
+		// String relation = "R(A,B,C,D,E,F)";
+		// String funcDep = "A,B,C->D,E;E->F";
+		
 		// String relation = args[0];
 		// String funcDep = args[1]; 
 
 		Relation R = new Relation(relation, ((relation.length() - 2)/2), funcDep);
-		System.out.println("Input Relation is: ");System.out.println(R);
-		System.out.println("\nAttributes of the relation are: ");R.printAttributes();
-		System.out.println("\nFunctional Dependencies of the relation are: ");R.printFDs();
+		System.out.print("*) Input Relation is: ");System.out.println(R);
+		System.out.print("\n*) Attributes of the relation are: ");R.printAttributes();
+		System.out.println("\n*) Functional Dependencies of the relation are: ");R.printFDs();
 
 		R.computeClosures();
-		System.out.println("\nClosures of all the combinations of attributes are: ");
+		System.out.println("\n*) Closures of all the combinations of attributes are: ");
 		for(Closure c : R.getClosures()){
 			System.out.println(c);
 		}
 
-		System.out.print("\n    Essential Attributes are: ");R.printEssentialAttributes();
-		System.out.print("Non-Essential Attributes are: ");R.printNonEssentialAttributes();
+		System.out.print("\n*) Essential Attributes are: ");R.printEssentialAttributes();
+		System.out.print("*) Non-Essential Attributes are: ");R.printNonEssentialAttributes();
 
 		R.computeSuperKeys();
-		System.out.print("\n    Super Keys are: ");R.printSuperKeys();
+		System.out.print("\n*) Super Keys are: ");R.printSuperKeys();
 		R.computeCandiadteKey();
-		System.out.print("Candidate Keys are: ");R.printCandidateKeys();
+		System.out.print("*) Candidate Keys are: ");R.printCandidateKeys();
 
-		System.out.print("\n    Key Attributes are: ");R.printKeyAttributes();
-		System.out.print("Non-Key Attributes are: ");R.printNonKeyAttributes();
+		System.out.print("\n*) Key Attributes are: ");R.printKeyAttributes();
+		System.out.print("*) Non-Key Attributes are: ");R.printNonKeyAttributes();
 	
 
-		System.out.println("\nChecking for highest Normal Form: ");
+		System.out.println("\n*) Checking for highest Normal Form: ");
 		R.computeNormalForm();
 		R.printNormalForms();
 
-		System.out.println("Minimal Cover of the relation is:");
+		System.out.println("\n*) Minimal Cover of the relation is:");
 		R.computeMinimalCover();
 	}
 }

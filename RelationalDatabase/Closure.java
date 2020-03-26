@@ -95,7 +95,7 @@ public class Closure{
 		String plus = ")+ = {";
 		String s = this.stringifyAttributes();
 		StringTokenizer st = new StringTokenizer(s, ";");
-		return ("(" + st.nextToken() + plus + st.nextToken() + "}");
+		return ("   > (" + st.nextToken() + plus + st.nextToken() + "}");
 	}
 	private String stringifyAttributes(){
 		StringBuilder s = new StringBuilder();
