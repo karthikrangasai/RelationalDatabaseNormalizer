@@ -31,6 +31,52 @@ public class FunctionalDependency{
 			this.y.add(relation.getAttribute(rightPartAttributes.nextToken()));
 		}
 		this.normalForm = 1;
+		Utils.sortAttributes(this.x);
+		Utils.sortAttributes(this.y);
+	}
+
+	public FunctionalDependency(Relation relation, ArrayList<Attribute> x, ArrayList<Attribute> y){
+		this.relation = relation;
+		this.x = new ArrayList<Attribute>();
+		StringBuilder sbLeft = new StringBuilder();
+		StringBuilder sbRight = new StringBuilder();
+		for(Attribute a : x){
+			this.x.add(a);
+			sbLeft.append(a.getName());
+			sbLeft.append(",");
+		}
+		sbLeft.deleteCharAt(sbLeft.toString().length() - 1);
+		this.y = new ArrayList<Attribute>();
+		for(Attribute a : y){
+			this.y.add(a);
+			sbRight.append(a.getName());
+			sbRight.append(",");
+		}
+		sbRight.deleteCharAt(sbRight.toString().length() - 1);
+		this.normalForm = 1;
+		this.funcdep = sbLeft.toString() + "->" + sbRight.toString();
+	}
+
+	public FunctionalDependency(Relation relation, ArrayList<Attribute> x, ArrayList<Attribute> y, int normalForm){
+		this.relation = relation;
+		this.x = new ArrayList<Attribute>();
+		StringBuilder sbLeft = new StringBuilder();
+		StringBuilder sbRight = new StringBuilder();
+		for(Attribute a : x){
+			this.x.add(a);
+			sbLeft.append(a.getName());
+			sbLeft.append(",");
+		}
+		sbLeft.deleteCharAt(sbLeft.toString().length() - 1);
+		this.y = new ArrayList<Attribute>();
+		for(Attribute a : y){
+			this.y.add(a);
+			sbRight.append(a.getName());
+			sbRight.append(",");
+		}
+		sbRight.deleteCharAt(sbRight.toString().length() - 1);
+		this.normalForm = normalForm;
+		this.funcdep = sbLeft.toString() + "->" + sbRight.toString();
 	}
 
 	///////////////////////// Class Methods /////////////////////////
@@ -94,6 +140,11 @@ public class FunctionalDependency{
 		return (this.y.size() > 1) ? true : false;
 	}
 
+	public boolean equals(Object O){
+		FunctionalDependency f = (FunctionalDependency)O;
+		return this.getLeftSideAttributes().equals(f.getLeftSideAttributes()) && this.getRightSideAttributes().equals(f.getRightSideAttributes());
+	}
+
 	///////////////////////// Printing Methods /////////////////////////
 	public String toString(){
 		String s = this.stringifyAttributes();
@@ -119,6 +170,9 @@ public class FunctionalDependency{
 	///////////////////////// Getter and Setter Methods /////////////////////////
 	public String getName(){
 		return this.funcdep;
+	}
+	public Relation getRelation(){
+		return this.relation;
 	}
 	public ArrayList<Attribute> getLeftSideAttributes(){
 		return this.x;

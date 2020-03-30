@@ -16,6 +16,7 @@ public class Closure{
 
 	///////////////////////// Class Methods /////////////////////////
 	public static Closure computeClosure(ArrayList<Attribute> closureAttributes, ArrayList<FunctionalDependency> funcDeps){
+		// System.out.println("\n*)Computing Closures: ");
 		ArrayList<Attribute> left = new ArrayList<Attribute>();
 		ArrayList<Attribute> right = new ArrayList<Attribute>();
 		for(Attribute a : closureAttributes){
@@ -23,36 +24,59 @@ public class Closure{
 			right.add(a);
 		}
 		ArrayList<Attribute> oldLeftAttributes = new ArrayList<Attribute>();
+		// System.out.println("   For Attributes " + closureAttributes + ": ");
 		do{
 			Utils.copyAttributes(right, oldLeftAttributes);
+			// System.out.println(right);
+			// System.out.println(oldLeftAttributes);
 			for(FunctionalDependency f : funcDeps){
-				boolean hasAllAttributes = true;
-				ArrayList<Attribute> fd_leftSide = f.getLeftSideAttributes();
-				ArrayList<Attribute> fd_rightSide = f.getRightSideAttributes();
-				if(fd_leftSide.size() <= right.size()){
-					for(Attribute a : fd_leftSide){
+				// System.out.println("       For " + f + ": ");
+				if(right.containsAll(f.getLeftSideAttributes())){
+					// System.out.println("        " + right + " conatains " + f.getLeftSideAttributes() + ": ");
+					for(Attribute a : f.getRightSideAttributes()){
+						// System.out.println("         " + left + " -> " + right + ": ");
 						if(!right.contains(a)){
-							hasAllAttributes = false;
-							break;
-						}
-					}
-					if(hasAllAttributes){
-						for(Attribute a : fd_rightSide){
-							if(!right.contains(a)){
-								right.add(a);
-							}
-							
+							right.add(a);
 						}
 					}
 				}
+				// boolean hasAllAttributes = true;
+				// ArrayList<Attribute> fd_leftSide = f.getLeftSideAttributes();
+				// ArrayList<Attribute> fd_rightSide = f.getRightSideAttributes();
+				// if(right.containsAll(fd_leftSide)){
+				// 	for(Attribute a : fd_rightSide){
+				// 		if(!right.contains(a)){
+				// 			right.add(a);
+				// 		}
+						
+				// 	}
+				// }
+				// if(fd_leftSide.size() <= right.size()){
+				// 	for(Attribute a : fd_leftSide){
+				// 		if(!right.contains(a)){
+				// 			hasAllAttributes = false;
+				// 			break;
+				// 		}
+				// 	}
+				// 	if(hasAllAttributes){
+				// 		for(Attribute a : fd_rightSide){
+				// 			if(!right.contains(a)){
+				// 				right.add(a);
+				// 			}
+							
+				// 		}
+				// 	}
+				// }
 			}
 		}
-		while(!left.equals(oldLeftAttributes));
+		while(!right.equals(oldLeftAttributes));
+		Utils.sortAttributes(left);
 		Utils.sortAttributes(right);
 		return new Closure(left, right);
 	}
 
 	public static ArrayList<Closure> computeClosure(ArrayList<FunctionalDependency> F){
+		Utils.sortFunctionalDependency(F);
 		ArrayList<Closure> F_Closure = new ArrayList<Closure>();
 		for(FunctionalDependency f : F){
 			Closure c = computeClosure(f.getLeftSideAttributes(), F);
@@ -64,21 +88,17 @@ public class Closure{
 	}
 
 	public static boolean equivalentClosures(ArrayList<FunctionalDependency> E, ArrayList<FunctionalDependency> F){
-		ArrayList<Closure> E_Closure = new ArrayList<Closure>();
-		ArrayList<Closure> F_Closure = new ArrayList<Closure>();
-		for(FunctionalDependency e : E){
-			E_Closure.add(computeClosure(e.getLeftSideAttributes(), E));
-		}
+		return (Closure.E_Covers_F(E, F) && Closure.E_Covers_F(F, E));
+	}
+
+	private static boolean E_Covers_F(ArrayList<FunctionalDependency> E, ArrayList<FunctionalDependency> F){
 		for(FunctionalDependency f : F){
-			F_Closure.add(computeClosure(f.getLeftSideAttributes(), F));
+			Closure c = Closure.computeClosure(f.getLeftSideAttributes(), E);
+			if(!(c.getRightSide().containsAll(f.getRightSideAttributes()))){
+				return false;
+			}
 		}
-		System.out.println(E_Closure);
-		System.out.println(F_Closure);
-		if(E_Closure.containsAll(F_Closure) || F_Closure.containsAll(E_Closure)){
-			return true;
-		} else {
-			return false;
-		}
+		return true;
 	}
 
 	public boolean equals(Object O){

@@ -8,15 +8,17 @@ public class Relation {
 	private String functionaldependencies;
 	private int noOfAttr;
 	private ArrayList<Attribute> attributes;
+	private ArrayList<FunctionalDependency> funcDeps;
 	private ArrayList<Attribute> essentialAttributes;
 	private ArrayList<Attribute> nonEssentialAttributes;
 	private ArrayList<ArrayList<Attribute>> superKeys;
 	private ArrayList<ArrayList<Attribute>> candidate_key;
 	private ArrayList<Attribute> keyAttributes;
 	private ArrayList<Attribute> nonKeyAttributes;
-	private ArrayList<FunctionalDependency> funcDeps;
 	private ArrayList<FunctionalDependency> minimalCover;
 	private ArrayList<Closure> closures;
+	private ArrayList<Relation> twoNFRelations;
+	private ArrayList<Relation> threeNFRelations;
 	private int normalForm;
 
 	///////////////////////// Class Constructors /////////////////////////
@@ -34,18 +36,89 @@ public class Relation {
 			attributes.add(new Attribute(separate_attributes.nextToken()));
 		}
 
-		this.superKeys = null;
-		this.candidate_key = null;
-		
 		StringTokenizer separate_funcDeps = new StringTokenizer(functionalDeps, ";");
 		while(separate_funcDeps.hasMoreTokens()){
 			this.funcDeps.add(new FunctionalDependency(this, separate_funcDeps.nextToken()));
 		}
+		
+		this.essentialAttributes = null;
+		this.nonEssentialAttributes = null;
+		this.superKeys = null;
+		this.candidate_key = null;
+		this.keyAttributes = null;
+		this.nonKeyAttributes = null;
+		this.minimalCover = null;
+		this.closures = null;
+		this.twoNFRelations = null;
+		this.threeNFRelations = null;
+		this.normalForm = 1;
+	}
+	public Relation(Set<Attribute> attributes, ArrayList<Attribute> fdLeftSide, ArrayList<Attribute> fdRightSide){
+		this.noOfAttr = attributes.size();
+		this.attributes = new ArrayList<Attribute>(attributes);
+		Utils.sortAttributes(this.attributes);
+		this.relation = this.generateRelationString(this.attributes);
+		
+		this.funcDeps = new ArrayList<FunctionalDependency>();
+		this.funcDeps.add(new FunctionalDependency(this, fdLeftSide, fdRightSide));
+		this.functionaldependencies = this.funcDeps.get(0).toString();
+		
+		// this.essentialAttributes = new ArrayList<Attribute>(fdLeftSide);
+		// this.nonEssentialAttributes = new ArrayList<Attribute>(fdRightSide);
+		// this.superKeys = new ArrayList<ArrayList<Attribute>>();
+		// this.superKeys.add(new ArrayList<Attribute>(fdLeftSide));
+		// this.candidate_key = new ArrayList<ArrayList<Attribute>>();
+		// this.candidate_key.add(new ArrayList<Attribute>(fdLeftSide));
+		// this.keyAttributes = new ArrayList<Attribute>(fdLeftSide);
+		// this.nonKeyAttributes = new ArrayList<Attribute>(fdRightSide);
+		// this.minimalCover = new ArrayList<FunctionalDependency>(this.funcDeps);
+		// this.closures = new ArrayList<Closure>();
+		// this.closures.add(Closure.computeClosure(fdLeftSide, this.funcDeps));
+		// this.normalForm = 1;
+		// this.computeNormalForm();
 
+		this.essentialAttributes = null;
+		this.nonEssentialAttributes = null;	
+		this.superKeys = null;
+		this.candidate_key = null;
+		this.keyAttributes = null;
+		this.nonKeyAttributes = null;
 		this.minimalCover = null;
 		this.closures = null;
 		this.normalForm = 1;
+
+		this.computeClosures();
+		this.computeSuperKeys();
+		this.computeCandiadteKey();
+		this.computeNormalForm();
+		this.computeMinimalCover();
 	}
+	public Relation(Set<Attribute> attributes, ArrayList<FunctionalDependency> funcDeps){
+		this.noOfAttr = attributes.size();
+		this.attributes = new ArrayList<Attribute>(attributes);
+		Utils.sortAttributes(this.attributes);
+		this.relation = this.generateRelationString(this.attributes);
+		
+		// System.out.println(this.relation);
+
+		this.funcDeps = funcDeps;
+		
+		this.essentialAttributes = null;
+		this.nonEssentialAttributes = null;	
+		this.superKeys = null;
+		this.candidate_key = null;
+		this.keyAttributes = null;
+		this.nonKeyAttributes = null;
+		this.minimalCover = null;
+		this.closures = null;
+		this.normalForm = 1;
+
+		this.computeClosures();
+		this.computeSuperKeys();
+		this.computeCandiadteKey();
+		this.computeNormalForm();
+		this.computeMinimalCover();
+	}	
 
 
 	///////////////////////// Class Methods /////////////////////////
@@ -146,7 +219,7 @@ public class Relation {
 		}
 		boolean is2NF = true;
 		for(FunctionalDependency f : this.funcDeps){
-			if(f.getNormalForm()!=2){
+			if(f.getNormalForm()<2){
 				is2NF = false;
 				break;
 			}
@@ -157,7 +230,7 @@ public class Relation {
 		if(this.normalForm == 2){
 			boolean is3NF = true;
 			for(FunctionalDependency f : this.funcDeps){
-				if(f.getNormalForm()!=3){
+				if(f.getNormalForm()<3){
 					is3NF = false;
 					break;
 				}
@@ -169,7 +242,7 @@ public class Relation {
 		if(this.normalForm == 3){
 			boolean isBCNF = true;
 			for(FunctionalDependency f : this.funcDeps){
-				if(f.getNormalForm()!=4){
+				if(f.getNormalForm()<4){
 					isBCNF = false;
 					break;
 				}
@@ -180,14 +253,15 @@ public class Relation {
 		}
 	}
 
-	/** Gets Primary Key for a relation */
+	/** Computes Minimal Cover for a relation */
 	public void computeMinimalCover(){
+		// Step 1 and Step 2 : F_min = F and Making single valued dependency
 		this.minimalCover = new ArrayList<FunctionalDependency>();
+		ArrayList<FunctionalDependency> minimalCoverCopy = new ArrayList<FunctionalDependency>();
 		for(FunctionalDependency f : this.funcDeps){
-			// System.out.println("For " + f + " :");
+			String funcDep = f.getName();
 			if(f.isMultivaluedDependency()){
 				// System.out.println("	It is a multivalues FD");
-				String funcDep = f.getName();
 				StringTokenizer st = new StringTokenizer(funcDep, "->");
 				String leftAttr = st.nextToken();
 				StringBuilder sb = new StringBuilder();
@@ -196,71 +270,215 @@ public class Relation {
 					sb.append(a.getName());
 					// System.out.println("		" + sb.toString());
 					this.minimalCover.add(new FunctionalDependency(this, sb.toString()));
+					minimalCoverCopy.add(new FunctionalDependency(this, sb.toString()));
 					sb.deleteCharAt(sb.length()-1);
 				}
 			} else {
-				this.minimalCover.add(f);
+				this.minimalCover.add(new FunctionalDependency(this, funcDep));
+				minimalCoverCopy.add(new FunctionalDependency(this, funcDep));
 			}
 		}
-		ArrayList<Closure> minimalCoverClosure = Closure.computeClosure(this.minimalCover); // Computing Minimal Cover Closure
-		System.out.println("  1) Closure of Minimal Cover: ");
-		for(Closure c : minimalCoverClosure){
-			System.out.println("      " + c);
-		}
-		ArrayList<FunctionalDependency> minimalCoverCopy = new ArrayList<FunctionalDependency>();
-		Utils.copyFunctionalDependencies(this.minimalCover, minimalCoverCopy);
-		System.out.println("  2) Minimal Cover After Step 2: (minimalCoverCopy)");
-		System.out.println("      " + minimalCoverCopy);
-		System.out.println("\n  3) Starting Step 3: ");
+		Utils.sortFunctionalDependency(this.minimalCover);
+		Utils.sortFunctionalDependency(minimalCoverCopy);
+		// System.out.println("\n   1) Minimal Cover: After Step 1 and Step 2");
+		// System.out.println("\n        Minimal Cover: " + this.minimalCover);
+		// System.out.println("\n        Minimal Cover: " + minimalCoverCopy);
+		
+		// Step 3 : Minimizing the LHS
+		int noOfFDs = minimalCoverCopy.size();
 		for(int i=0; i<minimalCoverCopy.size(); i++){
-			FunctionalDependency tempFD = minimalCoverCopy.get(i);
-			ArrayList<Attribute> tempFDLeft = tempFD.getLeftSideAttributes();
-			if(tempFDLeft.size() >= 2){
-				for(int j=0; j<tempFDLeft.size(); j++){
-					Attribute tempA = tempFDLeft.get(j);
-					tempFDLeft.remove(tempA);
-					// If Equivalent
-					System.out.print("    -> Minimal Cover Copy: ");
-					for(FunctionalDependency f : minimalCoverCopy){
-						System.out.print(f + "  ");
-					}System.out.println("");
-					ArrayList<Closure> minimalCoverCopyClosure = Closure.computeClosure(minimalCoverCopy);
-					System.out.println("    -> Closure of Minimal Cover Copy: ");
-					for(Closure c : minimalCoverCopyClosure){
-						System.out.println("       " + c);
+			if(minimalCoverCopy.get(i).getLeftSideAttributes().size()>=2){
+				FunctionalDependency g = minimalCoverCopy.get(i);
+				// ArrayList<Attribute> f_left = ();
+				// int noOfLeftAttr = ;
+				for(int j=0; j<g.getLeftSideAttributes().size(); j++){
+					FunctionalDependency f = minimalCoverCopy.remove(i);
+					ArrayList<Attribute> f_left = f.getLeftSideAttributes();
+					Attribute b = f_left.remove(j);
+					// System.out.println("          Adding: " + f + " at " + i);
+					// minimalCoverCopy.add(i, f);
+					minimalCoverCopy.add(i, new FunctionalDependency(this, f.getLeftSideAttributes(), f.getRightSideAttributes()));
+					// System.out.println("          " + this.minimalCover);
+					// System.out.println("          " + minimalCoverCopy);
+					boolean equivalent = Closure.equivalentClosures(this.minimalCover, minimalCoverCopy);
+					// System.out.println("          " + minimalCoverCopy);
+					// System.out.println("          Are Equivalent: " + equivalent);
+					if(!equivalent){
+						f_left.add(j,b);
+						// System.out.println("          " + minimalCoverCopy);
+						// System.out.println("          Setting: " + f + " at " + i);
+						// minimalCoverCopy.remove(i);
+						// System.out.println("          " + minimalCoverCopy);
+						minimalCoverCopy.set(i,f);
+						// minimalCoverCopy.add(i,f);
+						// System.out.println("          " + this.minimalCover);
+						// System.out.println("          " + minimalCoverCopy + "\n");
 					}
-					boolean equivalent = minimalCoverClosure.equals(minimalCoverCopyClosure) || minimalCoverClosure.containsAll(minimalCoverCopyClosure) || minimalCoverCopyClosure.containsAll(minimalCoverClosure);
-					System.out.println("    -> Are they Equivalent: " + equivalent + "\n");
-					if(equivalent){
-						break;
-					} else {
-						tempFDLeft.add(j, tempA);
-					}
+					// f_left.add(j,b);
+					// minimalCoverCopy.add(i, f);
+					// if(Closure.equivalentClosures(minimalCoverCopy, this.minimalCover)){
+					// }
 				}
 			}
 		}
-		System.out.println("    Minimal Cover After Step 3: (minimalCoverCopy)");
-		System.out.println("      " + minimalCoverCopy);
-		System.out.println("\n  4) Starting Step 4: ");
-		System.out.println("    -> Minimal Cover Copy: " + minimalCoverCopy);
+		// System.out.println("\n   2) Minimal Cover: After Step 3");
+		// System.out.println("\n        Minimal Cover: " + this.minimalCover);
+		// System.out.println("\n        Minimal Cover: " + minimalCoverCopy);
+
+		// Step 4 : Minimizing the RHS
 		for(int i=0; i<minimalCoverCopy.size(); i++){
-			FunctionalDependency tempFD = minimalCoverCopy.get(i);
-			System.out.println("\n    -> Removing: " + tempFD);
-			minimalCoverCopy.remove(tempFD);
-			ArrayList<Closure> minimalCoverCopyClosure = Closure.computeClosure(minimalCoverCopy);
-			System.out.println("    -> Closure of Minimal Cover Copy: ");
-			for(Closure c : minimalCoverCopyClosure){
-				System.out.println("       " + c);
-			}
-			boolean equivalent = minimalCoverClosure.equals(minimalCoverCopyClosure) || minimalCoverClosure.containsAll(minimalCoverCopyClosure) || minimalCoverCopyClosure.containsAll(minimalCoverClosure);
+			FunctionalDependency f = minimalCoverCopy.remove(i);
+			boolean equivalent = Closure.equivalentClosures(this.minimalCover, minimalCoverCopy);
 			if(!equivalent){
-				minimalCoverCopy.add(i, tempFD);
+				minimalCoverCopy.add(i, f);
+			}
+		}
+		// System.out.println("\n   3) Minimal Cover: After Step 4");
+		// System.out.println("\n        Minimal Cover: " + this.minimalCover);
+		// System.out.println("\n        Minimal Cover: " + minimalCoverCopy + "\n");
+		Utils.sortFunctionalDependency(minimalCoverCopy);
+		for(int i=0; i<minimalCoverCopy.size(); i++){
+			FunctionalDependency f = minimalCoverCopy.get(i);
+			// System.out.println("        For: " + f);
+			for(int j=0; j<minimalCoverCopy.size(); j++){
+				FunctionalDependency g = minimalCoverCopy.get(j);
+				// System.out.println("            Checking: " + g);
+				if(!f.equals(g) && f.getLeftSideAttributes().equals(g.getLeftSideAttributes())){
+					for(Attribute a : g.getRightSideAttributes()){
+						if(!f.getRightSideAttributes().contains(a)){
+							f.getRightSideAttributes().add(a);
+						}
+					}
+					// System.out.println("            Removing " + g);
+					minimalCoverCopy.remove(g);
+				}
+				
 			}
 		}
 
-		System.out.println("\n    Minimal Cover After Step 4: (minimalCoverCopy)");
-		System.out.println("      " + minimalCoverCopy);
+		this.minimalCover.clear();
+		Utils.copyFunctionalDependencies(minimalCoverCopy, this.minimalCover);
+		minimalCoverCopy.clear();
+		// System.out.println("\n\n        Final Minimal Cover: " + this.minimalCover);
 	}
+
+	// public void c_computeMinimalCover(){
+	// 	this.minimalCover = new ArrayList<FunctionalDependency>();
+	// 	for(FunctionalDependency f : this.funcDeps){
+	// 		// System.out.println("For " + f + " :");
+	// 		if(f.isMultivaluedDependency()){
+	// 			// System.out.println("	It is a multivalues FD");
+	// 			String funcDep = f.getName();
+	// 			StringTokenizer st = new StringTokenizer(funcDep, "->");
+	// 			String leftAttr = st.nextToken();
+	// 			StringBuilder sb = new StringBuilder();
+	// 			sb.append(leftAttr);sb.append("->");
+	// 			for(Attribute a : f.getRightSideAttributes()){
+	// 				sb.append(a.getName());
+	// 				// System.out.println("		" + sb.toString());
+	// 				this.minimalCover.add(new FunctionalDependency(this, sb.toString()));
+	// 				sb.deleteCharAt(sb.length()-1);
+	// 			}
+	// 		} else {
+	// 			this.minimalCover.add(f);
+	// 		}
+	// 	}
+	// 	ArrayList<Closure> minimalCoverClosure = Closure.computeClosure(this.minimalCover); // Computing Minimal Cover Closure
+	// 	System.out.println("  1) Closure of Minimal Cover: ");
+	// 	for(Closure c : minimalCoverClosure){
+	// 		System.out.println("      " + c);
+	// 	}
+	// 	ArrayList<FunctionalDependency> minimalCoverCopy = new ArrayList<FunctionalDependency>();
+	// 	Utils.copyFunctionalDependencies(this.minimalCover, minimalCoverCopy);
+	// 	System.out.println("  2) Minimal Cover After Step 2: (minimalCoverCopy)");
+	// 	System.out.println("      " + minimalCoverCopy);
+	// 	System.out.println("\n  3) Starting Step 3: ");
+	// 	for(int i=0; i<minimalCoverCopy.size(); i++){
+	// 		FunctionalDependency tempFD = minimalCoverCopy.get(i);
+	// 		ArrayList<Attribute> tempFDLeft = tempFD.getLeftSideAttributes();
+	// 		if(tempFDLeft.size() >= 2){
+	// 			for(int j=0; j<tempFDLeft.size(); j++){
+	// 				Attribute tempA = tempFDLeft.get(j);
+	// 				tempFDLeft.remove(tempA);
+	// 				// If Equivalent
+	// 				System.out.print("    -> Minimal Cover Copy: ");
+	// 				for(FunctionalDependency f : minimalCoverCopy){
+	// 					System.out.print(f + "  ");
+	// 				}System.out.println("");
+	// 				ArrayList<Closure> minimalCoverCopyClosure = Closure.computeClosure(minimalCoverCopy);
+	// 				System.out.println("    -> Closure of Minimal Cover Copy: ");
+	// 				for(Closure c : minimalCoverCopyClosure){
+	// 					System.out.println("       " + c);
+	// 				}
+	// 				boolean equivalent = minimalCoverClosure.equals(minimalCoverCopyClosure);// || minimalCoverClosure.containsAll(minimalCoverCopyClosure) || minimalCoverCopyClosure.containsAll(minimalCoverClosure);
+	// 				// boolean equivalent = Closure.equivalentClosures(this.minimalCover, minimalCoverCopy);
+	// 				System.out.println("    -> Are they Equivalent: " + equivalent + "\n");
+	// 				if(equivalent){
+	// 					break;
+	// 				} else {
+	// 					tempFDLeft.add(j, tempA);
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	System.out.println("    Minimal Cover After Step 3: (minimalCoverCopy)");
+	// 	System.out.println("      " + minimalCoverCopy);
+	// 	System.out.println("\n  4) Starting Step 4: ");
+	// 	System.out.println("    -> Minimal Cover Copy: " + minimalCoverCopy);
+	// 	for(int i=0; i<minimalCoverCopy.size(); i++){
+	// 		FunctionalDependency tempFD = minimalCoverCopy.get(i);
+	// 		System.out.println("\n    -> Removing: " + tempFD);
+	// 		minimalCoverCopy.remove(tempFD);
+	// 		ArrayList<Closure> minimalCoverCopyClosure = Closure.computeClosure(minimalCoverCopy);
+	// 		System.out.println("    -> Closure of Minimal Cover Copy: ");
+	// 		for(Closure c : minimalCoverCopyClosure){
+	// 			System.out.println("       " + c);
+	// 		}
+	// 		boolean equivalent = minimalCoverClosure.equals(minimalCoverCopyClosure);// || minimalCoverClosure.containsAll(minimalCoverCopyClosure) || minimalCoverCopyClosure.containsAll(minimalCoverClosure);
+	// 		// boolean equivalent = Closure.equivalentClosures(this.minimalCover, minimalCoverCopy);
+	// 		if(!equivalent){
+	// 			minimalCoverCopy.add(i, tempFD);
+	// 		}
+	// 	}
+	// 	System.out.println("\n    Minimal Cover After Step 4: (minimalCoverCopy)");
+	// 	System.out.println("      " + minimalCoverCopy);
+	// }
+
+	public void decomposeInto2NFRelations(){
+		// System.out.println("\n Decomposing to 2NF Relations: ");
+		if(!(this.normalForm >= 2)){
+			this.twoNFRelations = Decompositions.decomposeInto2NFScheme(this);
+		}
+	}
+
+	public void decomposeInto3NFRelations(){
+		System.out.println("\n Decomposing to 3NF Relations: ");
+		if(this.twoNFRelations != null){
+			this.threeNFRelations = new ArrayList<Relation>();
+			for(Relation r : this.twoNFRelations){
+				int relationNormalForm = r.getNormalForm();
+				if(!(relationNormalForm >= 3)){
+					System.out.println(r);
+					ArrayList<Relation> tempDecomposiiton = Decompositions.decomposeInto3NFScheme(r);
+					this.threeNFRelations.addAll(tempDecomposiiton);
+				} else {
+					this.threeNFRelations.add(r);
+				}
+			}
+		}
+	}
+
+	// public void decomposeIntoBCNFRelations(){
+	// 	this.bcNFRelations = new ArrayList<Relation>();
+	// 	for(Relation r : this.threeNFRelations){
+	// 		int relationNormalForm = r.getNormalForm();
+	// 		if(!(relationNormalForm >= 3)){
+	// 			ArrayList<Relation> tempDecomposiiton = Decompositions.decomposeIntoBCNFScheme(this);
+	// 		} else {
+	// 			this.bcNFRelations.add(r);
+	// 		}
+	// 	}
+	// }
 
 	///////////////////////// Printing Methods /////////////////////////
 	public void printAttributes(){
@@ -326,7 +544,28 @@ public class Relation {
 		System.out.println("");
 	}
 
-	public void printNormalForms(){
+	public void printNormalForm(){
+		switch(this.normalForm){
+			case 1 :{
+				System.out.print("Relation is in 1NF\n");
+				break;
+			}
+			case 2 :{
+				System.out.print("Relation is in 2NF\n");
+				break;
+			}
+			case 3 :{
+				System.out.print("Relation is in 3NF\n");
+				break;
+			}
+			case 4 :{
+				System.out.print("Relation is in BCNF\n");
+				break;
+			}
+		}
+	}
+
+	public void printNormalFormsTable(){
 		StringBuilder s = new StringBuilder();
 		int len = 52;
 		for(int i=0; i<len; i++){
@@ -374,29 +613,54 @@ public class Relation {
 			s.append("-");
 		}
 		s.append("\n");
-		switch(this.normalForm){
-			case 1 :{
-				s.append("\nRelation is in 1NF\n");
-				break;
-			}
-			case 2 :{
-				s.append("\nRelation is in 2NF\n");
-				break;
-			}
-			case 3 :{
-				s.append("\nRelation is in 3NF\n");
-				break;
-			}
-			case 4 :{
-				s.append("\nRelation is in BCNF\n");
-				break;
-			}
-		}
 		System.out.print(s.toString());
+	}
+
+	public void printMinimalCover(){
+		if(this.minimalCover != null){
+			StringBuilder s = new StringBuilder();
+			s.append("{ ");
+			for(FunctionalDependency f : this.minimalCover){
+				s.append(f.toString() + ", ");
+			}
+			s.deleteCharAt(s.toString().length() - 1);
+			s.deleteCharAt(s.toString().length() - 1);
+			s.append(" }");
+			System.out.println(s.toString());
+			return ;
+		}
+		System.out.println("Not yet computed :(");
+	}
+
+	public void print2NFRelations(){
+		for(Relation r : this.twoNFRelations){
+			System.out.println("	" + r);
+		}
+		System.out.println("");
+	}
+
+	public void print3NFRelations(){
+		for(Relation r : this.threeNFRelations){
+			System.out.println("	" + r);
+		}
+		System.out.println("");
 	}
 
 	public String toString(){
 		return this.relation;
+	}
+
+	private String generateRelationString(ArrayList<Attribute> attributes){
+		StringBuilder s = new StringBuilder();
+		s.append("R(");
+		ArrayList<Attribute> attr = new ArrayList<Attribute>(attributes);
+		Utils.sortAttributes(attr);
+		for(Attribute a : attr){
+			s.append(a.getName() + ",");
+		}
+		s.deleteCharAt(s.toString().length() - 1);
+		s.append(")");
+		return s.toString();
 	}
 
 	///////////////////////// Getter and Setter Methods /////////////////////////
@@ -414,10 +678,25 @@ public class Relation {
 	public ArrayList<Attribute> getAttributes(){
 		return this.attributes;
 	}
+	public ArrayList<FunctionalDependency> getFunctionalDependencies(){
+		return this.funcDeps;
+	}
 	public ArrayList<ArrayList<Attribute>> getKeys(){
 		return this.superKeys;
 	}
+	public int getNormalForm(){
+		return this.normalForm;
+	}
 	public ArrayList<Closure> getClosures(){
 		return this.closures;
+	}
+	public ArrayList<FunctionalDependency> getMinimalCover(){
+		return this.minimalCover;
+	}
+	public ArrayList<Relation> get2NFRelations(){
+		return this.twoNFRelations;
+	}
+	public ArrayList<Relation> get3NFRelations(){
+		return this.threeNFRelations;
 	}
 }
