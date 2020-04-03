@@ -19,6 +19,7 @@ public class Relation {
 	private ArrayList<Closure> closures;
 	private ArrayList<Relation> twoNFRelations;
 	private ArrayList<Relation> threeNFRelations;
+	private ArrayList<Relation> bcNFRelations;
 	private int normalForm;
 
 	///////////////////////// Class Constructors /////////////////////////
@@ -51,6 +52,7 @@ public class Relation {
 		this.closures = null;
 		this.twoNFRelations = null;
 		this.threeNFRelations = null;
+		this.bcNFRelations = null;
 		this.normalForm = 1;
 	}
 	public Relation(Set<Attribute> attributes, ArrayList<Attribute> fdLeftSide, ArrayList<Attribute> fdRightSide){
@@ -444,6 +446,37 @@ public class Relation {
 	// 	System.out.println("      " + minimalCoverCopy);
 	// }
 
+	public ArrayList<Relation> normalizeRelationByOneLevel(){
+		if(!(this.normalForm >= 2)){
+			this.decomposeInto2NFRelations();
+			return this.twoNFRelations;
+		}
+		if(!(this.normalForm >= 3)){
+			this.decomposeInto3NFRelations();
+			return this.threeNFRelations;
+		}
+		if(!(this.normalForm >= 4)){
+			this.decomposeIntoBCNFRelations();
+			return this.bcNFRelations;
+		}
+		return null;
+	}
+
+	public void normalizeRelation(){
+		if(!(this.normalForm >= 2)){
+			this.decomposeInto2NFRelations();
+			this.decompose2NFInto3NFRelations();
+			this.decompose3NFIntoBCNFRelations();
+		}
+		if(!(this.normalForm >= 3)){
+			this.decomposeInto3NFRelations();
+			this.decompose3NFIntoBCNFRelations();
+		}
+		if(!(this.normalForm >= 4)){
+			this.decomposeIntoBCNFRelations();
+		}
+	}
+
 	public void decomposeInto2NFRelations(){
 		// System.out.println("\n Decomposing to 2NF Relations: ");
 		if(!(this.normalForm >= 2)){
@@ -451,7 +484,7 @@ public class Relation {
 		}
 	}
 
-	public void decomposeInto3NFRelations(){
+	public void decompose2NFInto3NFRelations(){
 		System.out.println("\n Decomposing to 3NF Relations: ");
 		if(this.twoNFRelations != null){
 			this.threeNFRelations = new ArrayList<Relation>();
@@ -468,17 +501,35 @@ public class Relation {
 		}
 	}
 
-	// public void decomposeIntoBCNFRelations(){
-	// 	this.bcNFRelations = new ArrayList<Relation>();
-	// 	for(Relation r : this.threeNFRelations){
-	// 		int relationNormalForm = r.getNormalForm();
-	// 		if(!(relationNormalForm >= 3)){
-	// 			ArrayList<Relation> tempDecomposiiton = Decompositions.decomposeIntoBCNFScheme(this);
-	// 		} else {
-	// 			this.bcNFRelations.add(r);
-	// 		}
-	// 	}
-	// }
+
+	public void decomposeInto3NFRelations(){
+		if(!(this.normalForm >= 3)){
+			this.threeNFRelations = Decompositions.decomposeInto3NFScheme(this);
+		}
+	}
+
+	public void decompose3NFIntoBCNFRelations(){
+		// System.out.println("Need to add the For looping method for 3NF relations to BCNF");
+		if(this.threeNFRelations != null){
+			this.bcNFRelations = new ArrayList<Relation>();
+			for(Relation r : this.threeNFRelations){
+				int relationNormalForm = r.getNormalForm();
+				if(!(relationNormalForm >= 4)){
+					System.out.println(r);
+					ArrayList<Relation> tempDecomposiiton = Decompositions.decomposeIntoBCNFScheme(r);
+					this.bcNFRelations.addAll(tempDecomposiiton);
+				} else {
+					this.bcNFRelations.add(r);
+				}
+			}
+		}
+	}
+
+	public void decomposeIntoBCNFRelations(){
+		if(!(this.normalForm >= 4)){
+			this.bcNFRelations = Decompositions.decomposeIntoBCNFScheme(this);
+		}
+	}
 
 	///////////////////////// Printing Methods /////////////////////////
 	public void printAttributes(){

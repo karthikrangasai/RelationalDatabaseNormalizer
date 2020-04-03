@@ -81,42 +81,64 @@ public class Decompositions{
 		return threeNFRelations;
 	}
 
-	// public static ArrayList<Relation> decomposeIntoBCNFScheme(Relation relation){
-	// 	ArrayList<Relation> bcNFRelations = new ArrayList<Relation>();
-	// 	bcNFRelations.add(relation);
-
-	// 	Iterator itr = bcNFRelations.iterator();
-	// 	do{
-	// 		while(itr.hasNext()){
-	// 			Relation r = itr.next();
-	// 		}
-	// 	}while(Decompositions.relationSetNotBCNF(bcNFRelations));
-	// 	Set<Attribute> relationAttributes = new HashSet<Attribute>(relation.getAttributes());
-	// 	Set<Attribute> finsihedAttributes = new HashSet<Attribute>();
-	// 	Set<Attribute> attributes = new HashSet<Attribute>();
-	// 	ArrayList<FunctionalDependency> minimalCover = new ArrayList<FunctionalDependency>();
-	// 	Utils.generateFunctionalDependencies(relation.getMinimalCover(), minimalCover);
+	public static ArrayList<Relation> decomposeIntoBCNFScheme(Relation relation){
+		ArrayList<Relation> bcNFRelations = new ArrayList<Relation>();
+		bcNFRelations.add(relation);
+		Iterator<Relation> itr = bcNFRelations.iterator();
+		while(itr.hasNext()){
+			Relation r = itr.next();
+			Set<Attribute> relationAttributes = new HashSet<Attribute>(r.getAttributes());
+			ArrayList<FunctionalDependency> funcDeps = new ArrayList<FunctionalDependency>();
+			Utils.generateFunctionalDependencies(r.getFunctionalDependencies(), funcDeps);
+			Iterator<FunctionalDependency> itr_funcDep = funcDeps.iterator();
+			while(itr_funcDep.hasNext()){
+				FunctionalDependency f = itr_funcDep.next();
+				if(!f.inBCNF()){
+					// Relation - (X U Y)
+					Set<Attribute> relationOneAttr = new HashSet<Attribute>(f.getLeftSideAttributes());
+					relationOneAttr.addAll(f.getRightSideAttributes());
+					bcNFRelations.add(new Relation(relationOneAttr, f.getLeftSideAttributes(), f.getRightSideAttributes()));
+					itr_funcDep.remove();
+					// Relation - (R - Y)
+					relationAttributes.removeAll(f.getRightSideAttributes());
+					for(FunctionalDependency fD : funcDeps){
+						if(!fD.equals(f) && fD.hasAttributes(relationOneAttr)){
+							fD.getLeftSideAttributes().removeAll(relationOneAttr);
+							fD.getRightSideAttributes().removeAll(relationOneAttr);
+						}
+					}
+					bcNFRelations.add(new Relation(relationAttributes, funcDeps));
+					break;
+				}
+			}
+			itr.remove();
+		}
+		// Set<Attribute> relationAttributes = new HashSet<Attribute>(relation.getAttributes());
+		// Set<Attribute> finsihedAttributes = new HashSet<Attribute>();
+		// Set<Attribute> attributes = new HashSet<Attribute>();
+		// ArrayList<FunctionalDependency> minimalCover = new ArrayList<FunctionalDependency>();
+		// Utils.generateFunctionalDependencies(relation.getMinimalCover(), minimalCover);
 		
-	// 	Iterator<FunctionalDependency> itr = minimalCover.iterator();
-	// 	while(itr.hasNext()){
-	// 		FunctionalDependency f = itr.next();
-	// 		System.out.println(f);
-	// 		// if(!(f.getNormalForm() >= 3)){
-	// 			finsihedAttributes.addAll(f.getLeftSideAttributes());
-	// 			finsihedAttributes.addAll(f.getRightSideAttributes());
-	// 			attributes.addAll(f.getLeftSideAttributes());
-	// 			attributes.addAll(f.getRightSideAttributes());
-	// 			threeNFRelations.add(new Relation(attributes, f.getLeftSideAttributes(), f.getRightSideAttributes()));
-	// 			itr.remove();
-	// 			attributes.clear();
-	// 		// }
-	// 	}
-	// 	relationAttributes.removeAll(finsihedAttributes);
-	// 	if(!relationAttributes.isEmpty()){
-	// 		threeNFRelations.add(new Relation(relationAttributes, new ArrayList<Attribute>(relationAttributes), new ArrayList<Attribute>(relationAttributes)));
-	// 	}
-	// 	return threeNFRelations;
-	// }
+		// Iterator<FunctionalDependency> itr = minimalCover.iterator();
+		// while(itr.hasNext()){
+		// 	FunctionalDependency f = itr.next();
+		// 	System.out.println(f);
+		// 	// if(!(f.getNormalForm() >= 3)){
+		// 		finsihedAttributes.addAll(f.getLeftSideAttributes());
+		// 		finsihedAttributes.addAll(f.getRightSideAttributes());
+		// 		attributes.addAll(f.getLeftSideAttributes());
+		// 		attributes.addAll(f.getRightSideAttributes());
+		// 		threeNFRelations.add(new Relation(attributes, f.getLeftSideAttributes(), f.getRightSideAttributes()));
+		// 		itr.remove();
+		// 		attributes.clear();
+		// 	// }
+		// }
+		// relationAttributes.removeAll(finsihedAttributes);
+		// if(!relationAttributes.isEmpty()){
+		// 	threeNFRelations.add(new Relation(relationAttributes, new ArrayList<Attribute>(relationAttributes), new ArrayList<Attribute>(relationAttributes)));
+		// }
+		return bcNFRelations;
+	}
 
 	private static String generateRelationString(Set<Attribute> attributes){
 		StringBuilder s = new StringBuilder();

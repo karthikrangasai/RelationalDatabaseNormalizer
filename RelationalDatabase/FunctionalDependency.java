@@ -136,8 +136,16 @@ public class FunctionalDependency{
 		return isNonKey;
 	}
 
+	public boolean hasAttributes(Collection<Attribute> attributes){
+		return (this.x.containsAll(attributes) || this.y.containsAll(attributes));
+	}
+
 	public boolean isMultivaluedDependency(){
 		return (this.y.size() > 1) ? true : false;
+	}
+
+	public boolean inBCNF(){
+		return !(this.normalForm >= 4);
 	}
 
 	public boolean equals(Object O){
