@@ -2,19 +2,43 @@ package RelationalDatabase;
 
 import java.util.*;
 
+/**
+* Holds the closure of a set of Attributes with respect to the Funcational Dependencies of a Relation
+* @author Karthik Rangasai
+*/
 public class Closure{
 	///////////////////////// Class Members /////////////////////////
 	// (A,B)+ = {A,B,C,D}
+	/**
+	* The list of attributes whose closure the object holds.<br>
+	* Eg: leftAttributes = {A} when (A)+ = {A, B, C}
+	*/
 	private ArrayList<Attribute> leftAttributes;
+	/**
+	* The list of attributes which is the closure.<br>
+	* Eg: leftAttributes = {A, B, C} when (A)+ = {A, B, C}
+	*/
 	private ArrayList<Attribute> rightAttributes;
 
 	///////////////////////// Class Constructors /////////////////////////
+	/**
+	* Private constructor that creates the Closure object when one exists after being computed.
+	* @param leftAttributes The list of attributes whose closure the object holds.
+	* @param rightAttributes The list of attributes which is the closure.
+	*/
 	private Closure(ArrayList<Attribute> leftAttributes, ArrayList<Attribute> rightAttributes){
 		this.leftAttributes = leftAttributes;
 		this.rightAttributes = rightAttributes;
 	}
 
 	///////////////////////// Class Methods /////////////////////////
+	/** 
+	* Computes the closure of the given list of attributes with
+	* respect to the provided list of Functional Dependencies
+	* @param closureAttributes The list of attributes to find the closure of
+	* @param funcDeps The list of functional dependecies to refer to for computing the closure
+	* @return A new Closure object after computing the closure.
+	*/
 	public static Closure computeClosure(ArrayList<Attribute> closureAttributes, ArrayList<FunctionalDependency> funcDeps){
 		// System.out.println("\n*)Computing Closures: ");
 		ArrayList<Attribute> left = new ArrayList<Attribute>();
@@ -114,11 +138,17 @@ public class Closure{
 	public String toString(){
 		String plus = ")+ = {";
 		String s = this.stringifyAttributes();
+		// if(s.equals("")){
+		// 	return "";
+		// }
 		StringTokenizer st = new StringTokenizer(s, ";");
 		return ("   > (" + st.nextToken() + plus + st.nextToken() + "}");
 	}
 	private String stringifyAttributes(){
 		StringBuilder s = new StringBuilder();
+		// if(this.leftAttributes.isEmpty() && this.rightAttributes.isEmpty()){
+		// 	return "";
+		// }
 		for(Attribute a : this.leftAttributes){
 			s.append(a.getName());
 			s.append(",");

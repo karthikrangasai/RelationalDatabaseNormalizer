@@ -84,7 +84,7 @@ public class FunctionalDependency{
 		// 2NF Checking
 		boolean is2NF;
 		if(this.isNonKeyAttribute(this.y, nonKeyAttributes)){
-			if(isPartialKey(this.x, candidate_key)){
+			if(isPartialKey(this.x, nonKeyAttributes, candidate_key)){
 				is2NF = false;
 			} else {
 				is2NF = true;
@@ -99,7 +99,7 @@ public class FunctionalDependency{
 
 		// 3NF Checking
 		if(this.normalForm == 2){
-			if((isFullKey(this.x, candidate_key)) || (isFullKey(this.y, candidate_key) || (isPartialKey(this.y, candidate_key) && isNonKeyAttribute(this.y, nonKeyAttributes)))){
+			if((isFullKey(this.x, candidate_key)) || (isFullKey(this.y, candidate_key) || (isPartialKey(this.y, nonKeyAttributes, candidate_key) && !isNonKeyAttribute(this.y, nonKeyAttributes)))){
 				// System.out.println("Setting 3NF");
 				this.normalForm = 3;
 			}
@@ -115,8 +115,9 @@ public class FunctionalDependency{
 	private boolean isFullKey(ArrayList<Attribute> attributes, ArrayList<ArrayList<Attribute>> candidate_key){
 		return candidate_key.contains(attributes);
 	}
-	private boolean isPartialKey(ArrayList<Attribute> attributes, ArrayList<ArrayList<Attribute>> candidate_key){
-		return !candidate_key.contains(attributes);
+	private boolean isPartialKey(ArrayList<Attribute> attributes, ArrayList<Attribute> nonKeyAttributes, ArrayList<ArrayList<Attribute>> candidate_key){
+		return !(isFullKey(attributes, candidate_key) || isNonKeyAttribute(attributes, nonKeyAttributes));
+		// return !candidate_key.contains(attributes);
 	}
 	// private boolean isFullKey(ArrayList<Attribute> attributes, ArrayList<Attribute> keyAttributes){
 	// 	return keyAttributes.containsAll(attributes);
@@ -145,7 +146,7 @@ public class FunctionalDependency{
 	}
 
 	public boolean inBCNF(){
-		return !(this.normalForm >= 4);
+		return (this.normalForm >= 4);
 	}
 
 	public boolean equals(Object O){

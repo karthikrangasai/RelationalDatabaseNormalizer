@@ -8,3 +8,6 @@
 * Methods to check if two sets of FDs are equivalent
 * Getting Minimal Cover of FDs
 * Decomposition method
+
+## Changes Being Made:
+* 

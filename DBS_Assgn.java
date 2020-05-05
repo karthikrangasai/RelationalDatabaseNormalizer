@@ -8,11 +8,16 @@ class DBS_Assgn {
 		// String relation = "R(A,C)";
 		// String funcDep = "C->A";
 
+		// String relation = "R(A,B,C)";
+		// String funcDep = "A->B;B->C;C->A";
+		// String funcDep = "A,B->C;C->B";
+
+
 		// String relation = "R(A,B,C,D)";
 		// String funcDep = "A,B->C;A,B->D;C->B;B->D";
 		// String funcDep = "B->A;D->A;A,B->D";
 		// String funcDep = "A,B->C,D;C->B;B->D";
-		
+
 		// String relation = "R(A,B,C,D,E)";
 		// String funcDep = "A,B->C;A,B->D;B->E";
 
@@ -22,24 +27,28 @@ class DBS_Assgn {
 		// String relation = "R(A,B,C,D,E,F)";
 		// String funcDep = "A,B->C;C->A;D,C->B;A,C,D->B;D->E,F;B,E->C";
 
+		// String relation = "R(A,B,C,D,E)";
+		// String funcDep = "A,B->C,D,E;A->C;B->D;C->E";
 
 		// String relation = "R(A,C,L,P)";
 		// String funcDep = "P->A,C,L;L,C->A,P;A->C";
 
+		// String relation = "R(A,B,C)";
+		// String funcDep = "A,B->C;C->B";
 
-		/////// Example 0
-		// String relation = "R(A,B,C,D,E)";
-		// String funcDep = "A,B->C,D;B->E;C->B";
-		/////// Example 1
+		// ///// Example 0
 		String relation = "R(A,B,C,D,E)";
-		String funcDep = "A,B->C,D,E;A->C;B->D;C->E";
-		/////// Example 2
+		String funcDep = "A,B->C,D;B->E;C->B";
+		// ///// Example 1
 		// String relation = "R(A,B,C,D,E)";
-		// String funcDep = "A,B->C,D,E;B->E;C->B";
-		/////// Example 3
+		// String funcDep = "A,B->C,D,E;A->C;B->D;C->E";
+		// ///// Example 2
+		// String relation = "R(A,B,C,D,E)";
+		// String funcDep = "A,B->C,D,E;B->E;C->B;E->D";
+		// ///// Example 3
 		// String relation = "R(A,B,C,D,E,F)";
 		// String funcDep = "A,D->C,E,F;B->E;F->D";
-		/////// Example 4
+		// ///// Example 4
 		// String relation = "R(A,B,C,D,E,F)";
 		// String funcDep = "A,D->B,C,F;B->E;E->F";
 		
@@ -53,9 +62,13 @@ class DBS_Assgn {
 
 		R.computeClosures();
 		System.out.println("\n*) Closures of all the combinations of attributes are: ");
-		for(Closure c : R.getClosures()){
-			System.out.println(c);
+		ArrayList<Closure> closures = R.getClosures();
+		if(closures != null){
+			for(Closure c : closures){
+				System.out.println(c);
+			}
 		}
+		
 
 		System.out.print("\n*) Essential Attributes are: ");R.printEssentialAttributes();
 		System.out.print("*) Non-Essential Attributes are: ");R.printNonEssentialAttributes();
@@ -77,78 +90,109 @@ class DBS_Assgn {
 		System.out.println("\n*) Minimal Cover of the relation is:");
 		System.out.print("	");R.printMinimalCover();
 
-		
-		
-		System.out.println("\n\n\n");
+		System.out.println("\n*) Decomposing the relation until BCNF:");
+		R.normalizeRelation();
 
-		// ArrayList<Relation> decomposedRelations = R.normalizeRelationByOneLevel();
-		// for(Relation r : decomposedRelations){
-		// 	System.out.println(r + "	");
+		
+		
+		// R.normalizeRelationByOneLevel();
+		// ArrayList<Relation> decomposedRelations = R.getDecomposition();
+		// System.out.println("Decompose to 2NF Relation: ");
+		// R.decomposeInto2NFRelations();
+		// ArrayList<Relation> decomposed2NFRelations = R.get2NFRelations();
+		// if(decomposed2NFRelations != null){
+		// 	for(Relation r : decomposed2NFRelations){
+		// 		ArrayList<FunctionalDependency> f = r.getFunctionalDependencies();
+		// 		System.out.println(r + " with FDs " + f + " in the " + r.getNormalForm() + "NF");
+		// 	}
+		// 	System.out.println("");	
 		// }
-		// System.out.println("");
 
-		// 2NF Decompositions
-		R.decomposeInto2NFRelations();
-		System.out.println("\n*) 2 NF Relations are:");R.print2NFRelations();
-		ArrayList<Relation> twoNFRelations = R.get2NFRelations();
-		for(Relation r: twoNFRelations){
-			System.out.println("======================================================================");
-			System.out.print("    *) Input Relation is: ");System.out.println(r);
-			System.out.print("    *) Candidate Keys are: ");r.printCandidateKeys();
-			System.out.print("\n    *) Key Attributes are: ");r.printKeyAttributes();
-			// System.out.print("    *) Non-Key Attributes are: ");r.printNonKeyAttributes();
-			System.out.print("\n    *) Checking for highest Normal Form: ");r.printNormalForm();
-			r.printNormalFormsTable();
-			System.out.println("\n    *) Minimal Cover of the relation is:");r.printMinimalCover();
-		}
+		// System.out.println("Decompose to 3NF Relation: ");
+		// R.decompose2NFInto3NFRelations();
+		// ArrayList<Relation> decomposed3NFRelations = R.get3NFRelations();
+		// if(decomposed3NFRelations != null){
+		// 	for(Relation r : decomposed3NFRelations){
+		// 		ArrayList<FunctionalDependency> f = r.getFunctionalDependencies();
+		// 		System.out.println(r + " with FDs " + f + " in the " + r.getNormalForm() + "NF");
+		// 	}
+		// 	System.out.println("");
+		// }
 		
-		// 3NF Decompositions
-		System.out.println("\n\n\n");
-		R.decomposeInto3NFRelations();
-		System.out.println("\n*) 3 NF Relations are:");R.print3NFRelations();
-		ArrayList<Relation> threeNFRelations = R.get3NFRelations();
-		for(Relation r: threeNFRelations){
-			System.out.println("======================================================================");
-			System.out.print("    *) Input Relation is: ");System.out.println(r);
-			System.out.print("\n    *) Attributes of the relation are: ");r.printAttributes();
-			System.out.print("    *) Candidate Keys are: ");r.printCandidateKeys();
-			System.out.print("\n    *) Key Attributes are: ");r.printKeyAttributes();
-			// System.out.print("    *) Non-Key Attributes are: ");r.printNonKeyAttributes();
-			System.out.print("\n    *) Checking for highest Normal Form: ");r.printNormalForm();
-			r.printNormalFormsTable();
-			System.out.println("\n    *) Minimal Cover of the relation is:");r.printMinimalCover();
-		}
-		
-		// BCNF Decompositions
-		System.out.println("\n\n\n");
-		R.decomposeIntoBCNFRelations();
-		System.out.println("\n*) BC NF Relations are:");R.print3NFRelations();
-		ArrayList<Relation> bcNFRelations = R.get3NFRelations();
-		for(Relation r: bcNFRelations){
-			System.out.println("======================================================================");
-			System.out.print("    *) Input Relation is: ");System.out.println(r);
-			System.out.print("\n    *) Attributes of the relation are: ");r.printAttributes();
-			System.out.print("    *) Candidate Keys are: ");r.printCandidateKeys();
-			System.out.print("\n    *) Key Attributes are: ");r.printKeyAttributes();
-			// System.out.print("    *) Non-Key Attributes are: ");r.printNonKeyAttributes();
-			System.out.print("\n    *) Checking for highest Normal Form: ");r.printNormalForm();
-			r.printNormalFormsTable();
-			System.out.println("\n    *) Minimal Cover of the relation is:");r.printMinimalCover();
-		}
 
-		System.out.println("\n");
-		for(Relation r : twoNFRelations){
-			System.out.print(r + "	");
-		}
-		System.out.println("\n");
-		for(Relation r : threeNFRelations){
-			System.out.print(r + "	");
-		}
-		System.out.println("\n");
-		for(Relation r : bcNFRelations){
-			System.out.print(r + "	");
-		}
-		System.out.println("\n");
+		// System.out.println("Decompose to BCNF Relation: ");
+		// R.decompose3NFIntoBCNFRelations();
+		// ArrayList<Relation> decomposedBCNFRelations = R.getBCNFRelations();
+		// System.out.println(decomposedBCNFRelations != null);
+		// if(decomposedBCNFRelations != null){
+		// 	for(Relation r : decomposedBCNFRelations){
+		// 		ArrayList<FunctionalDependency> f = r.getFunctionalDependencies();
+		// 		System.out.println(r + " with FDs " + f + " in the " + r.getNormalForm() + "NF");
+		// 	}
+		// 	System.out.println("");
+		// }
+		// // 2NF Decompositions
+		// R.decomposeInto2NFRelations();
+		// System.out.println("\n*) 2 NF Relations are:");R.print2NFRelations();
+		// ArrayList<Relation> twoNFRelations = R.get2NFRelations();
+		// for(Relation r: twoNFRelations){
+		// 	System.out.println("======================================================================");
+		// 	System.out.print("    *) Input Relation is: ");System.out.println(r);
+		// 	System.out.print("    *) Candidate Keys are: ");r.printCandidateKeys();
+		// 	System.out.print("\n    *) Key Attributes are: ");r.printKeyAttributes();
+		// 	// System.out.print("    *) Non-Key Attributes are: ");r.printNonKeyAttributes();
+		// 	System.out.print("\n    *) Checking for highest Normal Form: ");r.printNormalForm();
+		// 	r.printNormalFormsTable();
+		// 	System.out.println("\n    *) Minimal Cover of the relation is:");r.printMinimalCover();
+		// }
+		
+		// // 3NF Decompositions
+		// System.out.println("\n\n\n");
+		// R.decomposeInto3NFRelations();
+		// System.out.println("\n*) 3 NF Relations are:");R.print3NFRelations();
+		// ArrayList<Relation> threeNFRelations = R.get3NFRelations();
+		// for(Relation r: threeNFRelations){
+		// 	System.out.println("======================================================================");
+		// 	System.out.print("    *) Input Relation is: ");System.out.println(r);
+		// 	System.out.print("\n    *) Attributes of the relation are: ");r.printAttributes();
+		// 	System.out.print("    *) Candidate Keys are: ");r.printCandidateKeys();
+		// 	System.out.print("\n    *) Key Attributes are: ");r.printKeyAttributes();
+		// 	// System.out.print("    *) Non-Key Attributes are: ");r.printNonKeyAttributes();
+		// 	System.out.print("\n    *) Checking for highest Normal Form: ");r.printNormalForm();
+		// 	r.printNormalFormsTable();
+		// 	System.out.println("\n    *) Minimal Cover of the relation is:");r.printMinimalCover();
+		// }
+		
+		// // BCNF Decompositions
+		// System.out.println("\n\n\n");
+		// R.decomposeIntoBCNFRelations();
+		// System.out.println("\n*) BC NF Relations are:");R.print3NFRelations();
+		// ArrayList<Relation> bcNFRelations = R.get3NFRelations();
+		// for(Relation r: bcNFRelations){
+		// 	System.out.println("======================================================================");
+		// 	System.out.print("    *) Input Relation is: ");System.out.println(r);
+		// 	System.out.print("\n    *) Attributes of the relation are: ");r.printAttributes();
+		// 	System.out.print("    *) Candidate Keys are: ");r.printCandidateKeys();
+		// 	System.out.print("\n    *) Key Attributes are: ");r.printKeyAttributes();
+		// 	// System.out.print("    *) Non-Key Attributes are: ");r.printNonKeyAttributes();
+		// 	System.out.print("\n    *) Checking for highest Normal Form: ");r.printNormalForm();
+		// 	r.printNormalFormsTable();
+		// 	System.out.println("\n    *) Minimal Cover of the relation is:");r.printMinimalCover();
+		// }
+
+		// System.out.println("\n");
+		// for(Relation r : twoNFRelations){
+		// 	System.out.print(r + "	");
+		// }
+		// System.out.println("\n");
+		// for(Relation r : threeNFRelations){
+		// 	System.out.print(r + "	");
+		// }
+		// System.out.println("\n");
+		// for(Relation r : bcNFRelations){
+		// 	System.out.print(r + "	");
+		// }
+		// System.out.println("\n");
 	}
 }
 
