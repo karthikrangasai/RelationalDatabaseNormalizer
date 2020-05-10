@@ -3,48 +3,155 @@ package RelationalDatabase;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.*;
 
+/**
+ * The Relation encompasses all the properties of a Relation concept
+ * from RDBMS like it's atrributes, functional dependecies, keys, normal form etc.
+ * @author Karthik Rangasai
+ */
 public class Relation {
 	///////////////////////// Class Members /////////////////////////
+	/**
+	* The String representation of the Relation.
+	*/
 	private String relation;
+	/**
+	* The String representation of the Functional Dependencies of the Relation.
+	*/
 	private String functionaldependencies;
+	/**
+	* The number of attributes in the Relation.
+	*/
 	private int noOfAttr;
+	/**
+	* The list of Attributes that belong to the Relation.
+	*/
 	private ArrayList<Attribute> attributes;
+	/**
+	* The list of Attributes that belong to the Relation and not present in any FD.
+	*/
+	private ArrayList<Attribute> nonFDAttributes;
+	/**
+	* The list of Functional Dependencies that belong to the Relation.
+	*/
 	private ArrayList<FunctionalDependency> funcDeps;
+	/**
+	* The list of Partial Functional Dependencies that belong to the Relation.
+	*/
 	private ArrayList<FunctionalDependency> partialFuncDeps;
+	/**
+	* The list of Full Functional Dependencies that belong to the Relation.
+	*/
 	private ArrayList<FunctionalDependency> fullFuncDeps;
+	/**
+	* The list of Essential Attributes that belong to the Relation.
+	*/
 	private ArrayList<Attribute> essentialAttributes;
+	/**
+	* The list of Non-Essential Attributes that belong to the Relation.
+	*/
 	private ArrayList<Attribute> nonEssentialAttributes;
+	/**
+	* The list of list of Attributes of the relation each of which is a super key of the relation.
+	*/
 	private ArrayList<ArrayList<Attribute>> superKeys;
+	/**
+	* The list of list of Attributes of the relation each of which is a candidate key of the relation.
+	*/
 	private ArrayList<ArrayList<Attribute>> candidate_key;
+	/**
+	* The list of Key Attributes that belong to the Relation.
+	*/
 	private ArrayList<Attribute> keyAttributes;
+	/**
+	* The list of Non-Key Attributes that belong to the Relation.
+	*/
 	private ArrayList<Attribute> nonKeyAttributes;
+	/**
+	* The Minimal Cover of the Relation.
+	*/
 	private ArrayList<FunctionalDependency> minimalCover;
+	/**
+	* The list of the Closures of all combinatiions of the attributes of the Relation.
+	*/
 	private ArrayList<Closure> closures;
+	/**
+	* The list of 2NF decomposed relations of the Relation.
+	*/
 	private ArrayList<Relation> twoNFRelations;
+	/**
+	* The list of 3NF decomposed relations of the Relation.
+	*/
 	private ArrayList<Relation> threeNFRelations;
+	/**
+	* The list of BCNF decomposed relations of the Relation.
+	*/
 	private ArrayList<Relation> bcNFRelations;
+	/**
+	* The highest Normal Form of the Relation
+	*/
 	private int normalForm;
 
 	///////////////////////// Class Constructors /////////////////////////
 	// relation is of the form ** R(A,B,C,D) **
 	// funcDeps is of the form ** A,B->D;A,B->C;B->E **
+	/** 
+	* The initial constructor for the input Relation Attributes and 
+	* Relation Functional Dependencies.
+	* @param relation The string representation for the Relation taken as input.
+	* @param noOfAttr The number of attributes.
+	* @param functionalDeps The string representation of all the Functional Dependencies taken as input.
+	*/
 	public Relation(String relation, int noOfAttr, String functionalDeps) {
 		this.noOfAttr = noOfAttr;
 		this.relation = relation;
 		this.functionaldependencies = functionalDeps;
 		this.attributes = new ArrayList<Attribute>();
+		this.nonFDAttributes = null;
 		this.funcDeps = new ArrayList<FunctionalDependency>();
 
 		StringTokenizer separate_attributes = new StringTokenizer(relation.substring(2, relation.length() - 1), ",");
 		while(separate_attributes.hasMoreTokens()){
 			attributes.add(new Attribute(separate_attributes.nextToken()));
 		}
-
+		Utils.sortAttributes(this.attributes);
+		// System.out.println(this.attributes);
 		StringTokenizer separate_funcDeps = new StringTokenizer(functionalDeps, ";");
+		ArrayList<Attribute> x = new ArrayList<Attribute>();
+		ArrayList<Attribute> y = new ArrayList<Attribute>();
 		while(separate_funcDeps.hasMoreTokens()){
-			this.funcDeps.add(new FunctionalDependency(this, separate_funcDeps.nextToken()));
+			// StringTokenizer dep = new StringTokenizer(separate_funcDeps.nextToken(), "->");
+			// String leftPart = dep.nextToken();
+			// String rightPart = dep.nextToken();
+
+			// StringTokenizer leftPartAttributes = new StringTokenizer(leftPart, ",");
+			// while(leftPartAttributes.hasMoreTokens()){
+			// 	x.add(this.getAttribute(leftPartAttributes.nextToken()));
+			// }
+
+			// StringTokenizer rightPartAttributes = new StringTokenizer(rightPart, ",");
+			// while(rightPartAttributes.hasMoreTokens()){
+				// y.add(this.getAttribute(rightPartAttributes.nextToken()));
+				// this.funcDeps.add(new FunctionalDependency(this, x, new ArrayList<Attribute>(y)));
+				// y.clear();
+				this.funcDeps.add(new FunctionalDependency(this, separate_funcDeps.nextToken()));
+			// }
+			// x.clear();
+			// y.clear();
 		}
+		Utils.sortFunctionalDependency(this.funcDeps);
+		// System.out.println(this.funcDeps);
 		
+		// for(Attribute a : this.attributes){
+		// 	for(FunctionalDependency f : this.funcDeps){
+		// 		if(!(f.getLeftSideAttributes().contains(a) || f.getRightSideAttributes().contains(a))){
+		// 		if(this.nonFDAttributes == null){
+		// 				this.nonFDAttributes = new ArrayList<Attribute>();
+		// 			}
+		// 			this.nonFDAttributes.add(a);
+		// 		}
+		// 	}
+		// }
+
 		this.partialFuncDeps = null;
 		this.fullFuncDeps = null;
 		this.essentialAttributes = null;
@@ -63,15 +170,24 @@ public class Relation {
         this.computeClosures();
 		this.computeSuperKeys();
 		this.computeCandiadteKey();
+		// System.out.println(this.candidate_key);
 		this.computeNormalForm();
 		this.computeMinimalCover();
 		this.separateFDs();
                 //this.normalizeRelationByOneLevel();
 	}
 
+	/** 
+	* The initial constructor for the input Relation Attributes and 
+	* Relation Functional Dependencies.
+	* @param relation The set of Attributes of the new relation.
+	* @param fdLeftSide The list of Attributes that infer other Attributes.
+	* @param fdRightSide The list of Attributes that are inferred from other Attributes.
+	*/
 	public Relation(Set<Attribute> attributes, ArrayList<Attribute> fdLeftSide, ArrayList<Attribute> fdRightSide){
 		this.noOfAttr = attributes.size();
 		this.attributes = new ArrayList<Attribute>(attributes);
+		this.nonFDAttributes = null;
 		Utils.sortAttributes(this.attributes);
 		this.relation = this.generateRelationString(this.attributes);
 		
@@ -79,6 +195,17 @@ public class Relation {
 		this.funcDeps.add(new FunctionalDependency(this, fdLeftSide, fdRightSide));
 		this.functionaldependencies = this.funcDeps.get(0).toString();
 		
+		// for(Attribute a : this.attributes){
+		// 	for(FunctionalDependency f : this.funcDeps){
+		// 		if(!(f.getLeftSideAttributes().contains(a) || f.getRightSideAttributes().contains(a))){
+		// 		if(this.nonFDAttributes == null){
+		// 				this.nonFDAttributes = new ArrayList<Attribute>();
+		// 			}
+		// 			this.nonFDAttributes.add(a);
+		// 		}
+		// 	}
+		// }
+
 		// this.essentialAttributes = new ArrayList<Attribute>(fdLeftSide);
 		// this.nonEssentialAttributes = new ArrayList<Attribute>(fdRightSide);
 		// this.superKeys = new ArrayList<ArrayList<Attribute>>();
@@ -109,14 +236,34 @@ public class Relation {
 		this.computeNormalForm();
 		this.computeMinimalCover();
 	}
+
+	/** 
+	* The initial constructor for the input Relation Attributes and 
+	* Relation Functional Dependencies.
+	* @param relation The set of Attributes of the new relation.
+	* @param funcDeps The list of Functional Dependencies for the relation.
+	*/
 	public Relation(Set<Attribute> attributes, ArrayList<FunctionalDependency> funcDeps){
 		this.noOfAttr = attributes.size();
 		this.attributes = new ArrayList<Attribute>(attributes);
+		this.nonFDAttributes = null;
 		Utils.sortAttributes(this.attributes);
 		this.relation = this.generateRelationString(this.attributes);
 		
 		// System.out.println(this.relation);
 		if(funcDeps != null){
+
+			// for(Attribute a : this.attributes){
+			// 	for(FunctionalDependency f : this.funcDeps){
+			// 		if(!(f.getLeftSideAttributes().contains(a) || f.getRightSideAttributes().contains(a))){
+			// 			if(this.nonFDAttributes == null){
+			// 				this.nonFDAttributes = new ArrayList<Attribute>();
+			// 			}
+			// 			this.nonFDAttributes.add(a);
+			// 		}
+			// 	}
+			// }
+
 			this.funcDeps = funcDeps;
 			this.essentialAttributes = null;
 			this.nonEssentialAttributes = null;	
@@ -151,31 +298,34 @@ public class Relation {
 		
 	}
 
-	public Relation(Set<Attribute> attributes){
-		this.noOfAttr = attributes.size();
-		this.attributes = new ArrayList<Attribute>(attributes);
-		Utils.sortAttributes(this.attributes);
-		this.relation = this.generateRelationString(this.attributes);
+	// public Relation(Set<Attribute> attributes){
+	// 	this.noOfAttr = attributes.size();
+	// 	this.attributes = new ArrayList<Attribute>(attributes);
+	// 	Utils.sortAttributes(this.attributes);
+	// 	this.relation = this.generateRelationString(this.attributes);
 
-		this.funcDeps = null;
+	// 	this.funcDeps = null;
 
-		this.essentialAttributes = new ArrayList<Attribute>(attributes);
-		this.nonEssentialAttributes = null;	
-		this.superKeys = new ArrayList<ArrayList<Attribute>>();
-		this.superKeys.add(essentialAttributes);
-		this.candidate_key = new ArrayList<ArrayList<Attribute>>();
-		this.candidate_key.add(essentialAttributes);
-		this.keyAttributes = new ArrayList<Attribute>(attributes);
-		this.nonKeyAttributes = null;
-		this.minimalCover = null;
-		this.closures = null;
-		this.normalForm = 4;
-	}
+	// 	this.essentialAttributes = new ArrayList<Attribute>(attributes);
+	// 	this.nonEssentialAttributes = null;	
+	// 	this.superKeys = new ArrayList<ArrayList<Attribute>>();
+	// 	this.superKeys.add(essentialAttributes);
+	// 	this.candidate_key = new ArrayList<ArrayList<Attribute>>();
+	// 	this.candidate_key.add(essentialAttributes);
+	// 	this.keyAttributes = new ArrayList<Attribute>(attributes);
+	// 	this.nonKeyAttributes = null;
+	// 	this.minimalCover = null;
+	// 	this.closures = null;
+	// 	this.normalForm = 4;
+	// }
 
 
 	///////////////////////// Class Methods /////////////////////////
 
-	/** Computes Essential Attributes for a relation */
+	/** 
+	* Computes Essential Attributes for a relation
+	* @param funcDeps Functional Dependencies of the relation
+	*/
 	private void getEssentialAttributes(ArrayList<FunctionalDependency> funcDeps){
 		HashSet<Attribute> eA = new HashSet<Attribute>(this.attributes);
 		HashSet<Attribute> nEA = new HashSet<Attribute>(this.attributes);
@@ -193,8 +343,10 @@ public class Relation {
 		Utils.sortAttributes(this.nonEssentialAttributes);
 	}
 
-	/** Computes Closures of all Attributes combinantions 
-		that has the essential attributes for a relation */
+	/** 
+	* Driver method to computes closures of all Attributes combinantions 
+	* that has the essential attributes for a relation
+	*/
 	public void computeClosures(){	// Driver Method
 		this.closures = new ArrayList<Closure>();
 		this.getEssentialAttributes(funcDeps);
@@ -207,6 +359,13 @@ public class Relation {
 		this.computeClosures(0, new ArrayList<Attribute>(), this.attributes);	
 	}
 	// Actual Method
+	/**
+	* Computes Closures of all Attributes combinantions 
+	* that has the essential attributes for a relation
+	* @param index Index at which we must input the Atrribute to produce the combination
+	* @param essentialAttributeList The list of Essential Attributes of the relation
+	* @param nonEssentialAttributeList The list of Non Essential Attributes of the relation
+	*/
 	public void computeClosures(int index, ArrayList<Attribute> essentialAttributeList, ArrayList<Attribute> nonEssentialAttributeList){
 		for(int i=index; i < nonEssentialAttributeList.size(); i++){
 			essentialAttributeList.add(nonEssentialAttributeList.get(i));
@@ -222,7 +381,9 @@ public class Relation {
 		Utils.sortClosure(this.closures);
 	}
 
-	/** Computes Super Keys for a relation */
+	/**
+	* Computes Super Keys for a relation
+	*/
 	public void computeSuperKeys(){
 		this.superKeys = new ArrayList<ArrayList<Attribute>>();
 		for(Closure c : closures){
@@ -233,18 +394,34 @@ public class Relation {
 		for(ArrayList<Attribute> key : this.superKeys){
 			Utils.sortAttributes(key);
 		}
+		Collections.sort(this.superKeys, new SortAttrList());
 	}
 	
-	/** Computes Canidate Keys for a relation */
+	/**
+	* Computes Canidate Keys for a relation
+	*/
 	public void computeCandiadteKey(){
-		int len = this.getMinimalSize();
 		this.candidate_key = new ArrayList<ArrayList<Attribute>>();
 		HashSet<Attribute> kA = new HashSet<Attribute>();
 		HashSet<Attribute> nKA = new HashSet<Attribute>(this.attributes);
-		for(ArrayList<Attribute> k : superKeys){
-			if(k.size() == len){
-				candidate_key.add(k);
-				kA.addAll(k);
+
+		this.candidate_key.add(this.superKeys.get(0));
+		kA.addAll(this.superKeys.get(0));
+		for(ArrayList<Attribute> superKey : this.superKeys){
+			boolean notMinimal = false;
+			if(!this.candidate_key.contains(superKey)){
+				for(ArrayList<Attribute> key : this.candidate_key){
+					if(superKey.containsAll(key)){
+						notMinimal = true;
+						break;
+					}
+				}
+			} else {
+				notMinimal = true;
+			}
+			if(!notMinimal){
+				this.candidate_key.add(superKey);
+				kA.addAll(superKey);
 			}
 		}
 		this.keyAttributes = new ArrayList<Attribute>(kA);
@@ -253,6 +430,11 @@ public class Relation {
 		this.nonKeyAttributes  = new ArrayList<Attribute>(nKA);
 		Utils.sortAttributes(this.nonKeyAttributes);
 	}
+
+	/**
+	* Computes the size of the smallest candidate key.
+	* @return An integer.
+	*/
 	private int getMinimalSize(){
 		int size = this.superKeys.size();
 		int min = this.superKeys.get(0).size();
@@ -264,12 +446,17 @@ public class Relation {
 		return min;
 	}
 
-	/** Gets Primary Key for a relation */
+	/**
+	* Gets Primary Key for a relation
+	* @return A list of attributes that is the primary key of the relation.
+	*/
 	public ArrayList<Attribute> getPrimaryKey(){
 		return this.candidate_key.get(0);
 	}
 
-	/** Computes Normal of the relation for a relation */
+	/**
+	* Computes Normal of the relation for a relation
+	*/
 	public void computeNormalForm(){
 		for(FunctionalDependency f : this.funcDeps){
 			f.computeNormalForm(this.keyAttributes, this.nonKeyAttributes, this.candidate_key);
@@ -310,7 +497,9 @@ public class Relation {
 		}
 	}
 
-	/** Computes Minimal Cover for a relation */
+	/**
+	* Computes Minimal Cover for a relation
+	*/
 	public void computeMinimalCover(){
 		
 		// Step 1 and Step 2 : F_min = F and Making single valued dependency
@@ -400,20 +589,22 @@ public class Relation {
 		for(int i=0; i<minimalCoverCopy.size(); i++){
 			FunctionalDependency f = minimalCoverCopy.get(i);
 			// System.out.println("        For: " + f);
-			for(int j=0; j<minimalCoverCopy.size(); j++){
-				FunctionalDependency g = minimalCoverCopy.get(j);
-				// System.out.println("            Checking: " + g);
-				if(!f.equals(g) && f.getLeftSideAttributes().equals(g.getLeftSideAttributes())){
-					for(Attribute a : g.getRightSideAttributes()){
-						if(!f.getRightSideAttributes().contains(a)){
-							f.getRightSideAttributes().add(a);
-						}
-					}
-					// System.out.println("            Removing " + g);
-					minimalCoverCopy.remove(g);
-				}
+			// for(int j=0; j<minimalCoverCopy.size(); j++){
+			// 	FunctionalDependency g = minimalCoverCopy.get(j);
+			// 	// System.out.println("            Checking: " + g);
+			// 	if(!f.equals(g) && f.getLeftSideAttributes().equals(g.getLeftSideAttributes())){
+			// 		for(Attribute a : g.getRightSideAttributes()){
+			// 			if(!f.getRightSideAttributes().contains(a)){
+			// 				f.getRightSideAttributes().add(a);
+			// 			}
+			// 		}
+			// 		// System.out.println("            Removing " + g);
+			// 		minimalCoverCopy.remove(g);
+			// 	}
 				
-			}
+			// }
+			Utils.sortAttributes(f.getLeftSideAttributes());
+			Utils.sortAttributes(f.getRightSideAttributes());
 		}
 
 		this.minimalCover.clear();
@@ -422,15 +613,16 @@ public class Relation {
 		// System.out.println("\n\n        Final Minimal Cover: " + this.minimalCover);
 	}
 
+	/**
+	* Computes the Full and Partial Functional Dependencies of the relation.
+	*/
 	public void separateFDs(){
 		// System.out.println("Separating FDs:");
 		// this.partialFuncDeps = new ArrayList<FunctionalDependency>();
 		// this.fullFuncDeps = new ArrayList<FunctionalDependency>();
 		Set<FunctionalDependency> partialFuncDeps = new HashSet<FunctionalDependency>();
-		Set<FunctionalDependency> fullFuncDepsSet = new HashSet<FunctionalDependency>();
 		CopyOnWriteArrayList<FunctionalDependency> fullFuncDeps = new CopyOnWriteArrayList<FunctionalDependency>();
 		Utils.generateFunctionalDependencies(this.minimalCover, fullFuncDeps);
-		Set<FunctionalDependency> transferBin = new HashSet<FunctionalDependency>();
 
 		Iterator<FunctionalDependency> itr1 = fullFuncDeps.iterator();
 		while(itr1.hasNext()){
@@ -439,6 +631,7 @@ public class Relation {
 			// System.out.println("		" + fullFuncDepsSet);
 			// System.out.println("		" + partialFuncDeps);
 			FunctionalDependency fd = itr1.next();
+			fd.computeNormalForm(this.keyAttributes, this.nonKeyAttributes, this.candidate_key);
 			// System.out.println("		fd = " + fd);
 			if(fd.getNormalForm() < 2){
 				partialFuncDeps.add(fd);
@@ -451,8 +644,8 @@ public class Relation {
 				while(itr2.hasNext()){
 					FunctionalDependency f = itr2.next();
 					if(!f.equals(fd) && ( c.getRightSide().containsAll(f.getLeftSideAttributes()) )){
-						partialFuncDeps.add(fd);
-						fullFuncDeps.remove(fd);
+						partialFuncDeps.add(f);
+						fullFuncDeps.remove(f);
 						// transferBin.add(f);
 					}
 				}
@@ -466,6 +659,7 @@ public class Relation {
 			// fullFuncDeps.removeAll(transferBin);
 			
 			// transferBin.clear();
+			// System.out.println("	Ending:");
 			// System.out.println("		" + this.fullFuncDeps);
 			// System.out.println("		" + this.partialFuncDeps);
 		}
@@ -481,16 +675,57 @@ public class Relation {
 	}
 
 
+	/** 
+	* This method normalizes a relation from x NF to (x + 1) NF upto BCNF.
+	*/
 	public void normalizeRelationByOneLevel(){
 		if(!(this.normalForm >= 2)){
 			this.decomposeInto2NFRelations();
+			if(this.twoNFRelations != null){
+				for(Relation r : this.twoNFRelations){
+					// ArrayList<FunctionalDependency> f = r.getFunctionalDependencies();
+					System.out.println("	Relation: " + r);
+					System.out.println("	Functional Dependencies: " + r.getFunctionalDependencies());
+					System.out.println("	Candidate Key(s): " + r.getCandidateKeys());
+					System.out.println("");
+					// System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + r.getNormalForm() + "NF" + " with Candidate Keys " + r.getCandidateKeys());
+				}
+				System.out.println("");	
+			}
 		} else if(!(this.normalForm >= 3)){
 			this.decomposeInto3NFRelations();
+			if(this.threeNFRelations != null){
+				for(Relation r : this.threeNFRelations){
+					// ArrayList<FunctionalDependency> f = r.getFunctionalDependencies();
+					System.out.println("	Relation: " + r);
+					System.out.println("	Functional Dependencies: " + r.getFunctionalDependencies());
+					System.out.println("	Candidate Key(s): " + r.getCandidateKeys());
+					System.out.println("");
+					// System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + r.getNormalForm() + "NF" + " with Candidate Keys " + r.getCandidateKeys());
+				}
+				System.out.println("");	
+			}
 		} else if(!(this.normalForm >= 4)){
 			this.decomposeIntoBCNFRelations();
+			if(this.bcNFRelations != null){
+				for(Relation r : this.bcNFRelations){
+					// ArrayList<FunctionalDependency> f = r.getFunctionalDependencies();
+					System.out.println("	Relation: " + r);
+					System.out.println("	Functional Dependencies: " + r.getFunctionalDependencies());
+					System.out.println("	Candidate Key(s): " + r.getCandidateKeys());
+					System.out.println("");
+					// System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + r.getNormalForm() + "NF" + " with Candidate Keys " + r.getCandidateKeys());
+				}
+				System.out.println("");	
+			}
+		} else {
+			System.out.println("Relation already in BCNF !!!");
 		}
 	}
 
+	/** 
+	* This method normalizes a relation from x NF to BCNF through every Normal Form.
+	*/
 	public void normalizeRelation(){
 		if(!(this.normalForm >= 2)){
 			this.decomposeInto2NFRelations();
@@ -498,6 +733,7 @@ public class Relation {
 				for(Relation r : this.twoNFRelations){
 					// ArrayList<FunctionalDependency> f = r.getFunctionalDependencies();
 					System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + r.getNormalForm() + "NF" + " with Candidate Keys " + r.getCandidateKeys());
+					System.out.println(r.getMinimalCover());;
 				}
 				System.out.println("");	
 			}
@@ -549,6 +785,9 @@ public class Relation {
 		}
 	}
 
+	/** 
+	* This method normalizes the current relation to 2 NF.
+	*/
 	public void decomposeInto2NFRelations(){
 		System.out.println("\n Decomposing to 2NF Relations: ");
 		if(!(this.normalForm >= 2)){
@@ -556,6 +795,10 @@ public class Relation {
 		}
 	}
 
+	/** 
+	* This method normalizes all the 2 NF decomposed relations
+	* of this relation to 3 NF relations.
+	*/
 	public void decompose2NFInto3NFRelations(){
 		System.out.println("\n Decomposing to 3NF Relations: ");
 		if(this.twoNFRelations != null){
@@ -573,7 +816,9 @@ public class Relation {
 		}
 	}
 
-
+	/** 
+	* This method normalizes the current relation to 3 NF.
+	*/
 	public void decomposeInto3NFRelations(){
 		System.out.println("\n Decomposing to 3NF Relations: ");
 		if(!(this.normalForm >= 3)){
@@ -581,6 +826,10 @@ public class Relation {
 		}
 	}
 
+	/** 
+	* This method normalizes all the 3 NF decomposed relations
+	* of this relation to BC NF relations.
+	*/
 	public void decompose3NFIntoBCNFRelations(){
 		System.out.println("\n Decomposing to BCNF Relations: ");
 		if(this.threeNFRelations != null){
@@ -598,6 +847,9 @@ public class Relation {
 		}
 	}
 
+	/** 
+	* This method normalizes the current relation to BC NF.
+	*/
 	public void decomposeIntoBCNFRelations(){
 		System.out.println("\n Decomposing to BCNF Relations: ");
 		if(!(this.normalForm >= 4)){
@@ -605,7 +857,20 @@ public class Relation {
 		}
 	}
 
+	/**
+	* Creates a copy of the current relation.
+	*/
+	public Relation getRelationCopy(){
+		Set<Attribute> attributes = new HashSet<Attribute>(this.attributes);
+		ArrayList<FunctionalDependency> funcDepsCopy = new ArrayList<FunctionalDependency>();
+		Utils.generateFunctionalDependencies(this.funcDeps, funcDepsCopy);
+		return new Relation(attributes, funcDepsCopy);
+	}
+
 	///////////////////////// Printing Methods /////////////////////////
+	/** 
+	* Prints the Attributes of the relation.
+	*/
 	public void printAttributes(){
 		for(Attribute a : this.attributes){
 			System.out.print(a.getName() + " ");
@@ -613,6 +878,9 @@ public class Relation {
 		System.out.println("");
 	}
 
+	/** 
+	* Prints the Attributes of the relation as a list form.
+	*/
 	private String printListAttributes(ArrayList<Attribute> attributes){
 		StringBuilder s = new StringBuilder();
 		for(Attribute a : attributes){
@@ -621,12 +889,18 @@ public class Relation {
 		return s.toString();
 	}
 
+	/** 
+	* Prints the Functional Dependencies of the relation.
+	*/
 	public void printFDs(){
 		for(FunctionalDependency f : funcDeps){
 			System.out.println("   >" + f);
 		}
 	}
 
+	/** 
+	* Prints the Essential Attributes of the relation.
+	*/
 	public void printEssentialAttributes(){
 		for(Attribute a : this.essentialAttributes){
 			System.out.print(a.getName());
@@ -634,6 +908,9 @@ public class Relation {
 		System.out.println("");
 	}
 
+	/** 
+	* Prints the Non Essential Attributes of the relation.
+	*/
 	public void printNonEssentialAttributes(){
 		for(Attribute a : this.nonEssentialAttributes){
 			System.out.print(a.getName());
@@ -641,6 +918,9 @@ public class Relation {
 		System.out.println("");
 	}
 
+	/** 
+	* Prints the Super Keys of the relation.
+	*/
 	public void printSuperKeys(){
 		for(ArrayList<Attribute> k : this.superKeys){
 			System.out.print(Utils.stringifyAttributeList(k) + " ");
@@ -648,6 +928,9 @@ public class Relation {
 		System.out.println("");
 	}
 	
+	/** 
+	* Prints the Candidate Keys of the relation.
+	*/
 	public void printCandidateKeys(){
 		for(ArrayList<Attribute> k : this.candidate_key){
 			System.out.print(Utils.stringifyAttributeList(k) + " ");
@@ -655,6 +938,9 @@ public class Relation {
 		System.out.println("");
 	}
 
+	/** 
+	* Prints the Key Attributes of the relation.
+	*/
 	public void printKeyAttributes(){
 		for(Attribute a : this.keyAttributes){
 			System.out.print(a.getName());
@@ -662,6 +948,9 @@ public class Relation {
 		System.out.println("");
 	}
 
+	/** 
+	* Prints the Non Key Attributes of the relation.
+	*/
 	public void printNonKeyAttributes(){
 		for(Attribute a : this.nonKeyAttributes){
 			System.out.print(a.getName());
@@ -669,6 +958,9 @@ public class Relation {
 		System.out.println("");
 	}
 
+	/** 
+	* Prints the Normal Form of the relation.
+	*/
 	public void printNormalForm(){
 		switch(this.normalForm){
 			case 1 :{
@@ -690,99 +982,112 @@ public class Relation {
 		}
 	}
 
+	/** 
+	* Driver method for printing the Normal Form COmputation Table.
+	*/
 	public void printNormalFormsTable(){
-                System.out.println(this.normalFormsTableGen());
+		System.out.println(this.normalFormsTableGen());
 		
 	}
-        
-        public Object[][] generateNFTable(){
-            String[][] output = new String[this.funcDeps.size()][5];
-            int i = 0;
-            for(FunctionalDependency f : this.funcDeps){
-                output[i][0] = f.getName();
-                int nf = f.getNormalForm();
-                if(nf == 1){
-                    output[i][1] = "Y";
-                    output[i][2] = "N";
-                    output[i][3] = "N";
-                    output[i][4] = "N";
-                } else if(nf == 2){
-                    output[i][1] = "Y";
-                    output[i][2] = "Y";
-                    output[i][3] = "N";
-                    output[i][4] = "N";
-                } else if(nf == 3){
-                    output[i][1] = "Y";
-                    output[i][2] = "Y";
-                    output[i][3] = "Y";
-                    output[i][4] = "N";
-                } else if(nf == 4){
-                    output[i][1] = "Y";
-                    output[i][2] = "Y";
-                    output[i][3] = "Y";
-                    output[i][4] = "Y";
-                } else {
-                    output[i][1] = "*";
-                    output[i][2] = "*";
-                    output[i][3] = "*";
-                    output[i][4] = "*";
-                }
-                ++i;
-            }
-            return output;
-        }
 
-        public String normalFormsTableGen(){
-            StringBuilder s = new StringBuilder();
-			int len = 52;
-			for(int i=0; i<len; i++){
-				s.append("-");
+	/** 
+	* Alters the Normal Form COmputation Table based on the 
+	* available FDs.
+	*/
+	public Object[][] generateNFTable(){
+		String[][] output = new String[this.funcDeps.size()][5];
+		int i = 0;
+		for(FunctionalDependency f : this.funcDeps){
+			output[i][0] = f.getName();
+			int nf = f.getNormalForm();
+			if(nf == 1){
+				output[i][1] = "Y";
+				output[i][2] = "N";
+				output[i][3] = "N";
+				output[i][4] = "N";
+			} else if(nf == 2){
+				output[i][1] = "Y";
+				output[i][2] = "Y";
+				output[i][3] = "N";
+				output[i][4] = "N";
+			} else if(nf == 3){
+				output[i][1] = "Y";
+				output[i][2] = "Y";
+				output[i][3] = "Y";
+				output[i][4] = "N";
+			} else if(nf == 4){
+				output[i][1] = "Y";
+				output[i][2] = "Y";
+				output[i][3] = "Y";
+				output[i][4] = "Y";
+			} else {
+				output[i][1] = "*";
+				output[i][2] = "*";
+				output[i][3] = "*";
+				output[i][4] = "*";
 			}
-			s.append("\n");
-			s.append("|  Functional Dependency  | 1NF | 2NF | 3NF | BCNF |\n");
-			for(int i=0; i<len; i++){
-				s.append("-");
-			}
-			s.append("\n");
-			for(FunctionalDependency f : this.funcDeps){
-				String name = f.getName();
-				int normalForm = f.getNormalForm();
-				double spaces = (25 - name.length())/2;
-				s.append("|");
-				for(int i=0; i<Math.floor(spaces); i++){
-					s.append(" ");
-				}
-				s.append(name);
-				for(int i=0; i<Math.ceil(spaces)+1; i++){
-					s.append(" ");
-				}
-				s.append("|");
-				switch(normalForm){
-					case 1 :{
-						s.append("  *  |  X  |  X  |  X   |\n");
-						break;
-					}
-					case 2 :{
-						s.append("  *  |  *  |  X  |  X   |\n");
-						break;
-					}
-					case 3 :{
-						s.append("  *  |  *  |  *  |  X   |\n");
-						break;
-					}
-					case 4 :{
-						s.append("  *  |  *  |  *  |  *   |\n");
-						break;
-					}
-				}
-			}
-			for(int i=0; i<len; i++){
-				s.append("-");
-			}
-			s.append("\n");
-			return s.toString();
-        }
+			++i;
+		}
+		return output;
+	}
 
+	/** 
+	* Main method the generate the string for the Normal Form COmputation Table.
+	*/
+	public String normalFormsTableGen(){
+		StringBuilder s = new StringBuilder();
+		int len = 52;
+		for(int i=0; i<len; i++){
+			s.append("-");
+		}
+		s.append("\n");
+		s.append("|  Functional Dependency  | 1NF | 2NF | 3NF | BCNF |\n");
+		for(int i=0; i<len; i++){
+			s.append("-");
+		}
+		s.append("\n");
+		for(FunctionalDependency f : this.funcDeps){
+			String name = f.getName();
+			int normalForm = f.getNormalForm();
+			double spaces = (25 - name.length())/2;
+			s.append("|");
+			for(int i=0; i<Math.floor(spaces); i++){
+				s.append(" ");
+			}
+			s.append(name);
+			for(int i=0; i<Math.ceil(spaces)+1; i++){
+				s.append(" ");
+			}
+			s.append("|");
+			switch(normalForm){
+				case 1 :{
+					s.append("  Y  |  N  |  N  |  N   |\n");
+					break;
+				}
+				case 2 :{
+					s.append("  Y  |  Y  |  N  |  N   |\n");
+					break;
+				}
+				case 3 :{
+					s.append("  Y  |  Y  |  Y  |  N   |\n");
+					break;
+				}
+				case 4 :{
+					s.append("  Y  |  Y  |  Y  |  Y   |\n");
+					break;
+				}
+			}
+		}
+		for(int i=0; i<len; i++){
+			s.append("-");
+		}
+		s.append("\n");
+		return s.toString();
+	}
+
+	/** 
+	* Prints the Minimal Cover of the relation.
+	*/
 	public void printMinimalCover(){
 		if(this.minimalCover != null){
 			StringBuilder s = new StringBuilder();
@@ -799,6 +1104,9 @@ public class Relation {
 		System.out.println("Not yet computed :(");
 	}
 
+	/** 
+	* Prints the 2 NF relations of the relation.
+	*/
 	public void print2NFRelations(){
 		for(Relation r : this.twoNFRelations){
 			System.out.println("	" + r);
@@ -806,6 +1114,9 @@ public class Relation {
 		System.out.println("");
 	}
 
+	/** 
+	* Prints the 3 NF relations of the relation.
+	*/
 	public void print3NFRelations(){
 		for(Relation r : this.threeNFRelations){
 			System.out.println("	" + r);
@@ -826,7 +1137,10 @@ public class Relation {
 			return "<html>" + s.toString() + "<html/>";
 		}
 	}
-        
+    
+	/** 
+	* Prints the String representation of the relation.
+	*/
 	public String toString(){
 		return this.relation;
 	}
@@ -921,6 +1235,18 @@ public class Relation {
 	}
 }
 
+/**
+ * The helper class to provide the sortAttributes method with a comparator method
+ * @author Karthik Rangasai
+ * @see Utils#sortAttributes
+ */
+class SortAttrList implements Comparator<ArrayList<Attribute>>{
+	public int compare(ArrayList<Attribute> a, ArrayList<Attribute> b){
+		String superKey_A = Utils.stringifyAttributeList(a);
+		String superKey_B = Utils.stringifyAttributeList(b);
+		return superKey_A.length() - superKey_B.length();
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////// OLD ONE ///////////////////////////////////////////////////////////////////////////

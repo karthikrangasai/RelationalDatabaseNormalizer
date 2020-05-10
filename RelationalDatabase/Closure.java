@@ -39,7 +39,7 @@ public class Closure{
 	* @param funcDeps The list of functional dependecies to refer to for computing the closure
 	* @return A new Closure object after computing the closure.
 	*/
-	public static Closure computeClosure(ArrayList<Attribute> closureAttributes, ArrayList<FunctionalDependency> funcDeps){
+	public static Closure computeClosure(ArrayList<Attribute> closureAttributes, Collection<FunctionalDependency> funcDeps){
 		// System.out.println("\n*)Computing Closures: ");
 		ArrayList<Attribute> left = new ArrayList<Attribute>();
 		ArrayList<Attribute> right = new ArrayList<Attribute>();
@@ -92,13 +92,18 @@ public class Closure{
 				// 	}
 				// }
 			}
-		}
-		while(!right.equals(oldLeftAttributes));
+		} while(!right.equals(oldLeftAttributes));
 		Utils.sortAttributes(left);
 		Utils.sortAttributes(right);
 		return new Closure(left, right);
 	}
 
+	/** 
+	* Computes the closure of left side list of attributes of every
+	* Functional Dependency with respect to list of Functional Dependencies
+	* @param F The list of functional dependecies to refer to for computing the closure
+	* @return An ArrayList of Closure objects after computing the closures.
+	*/
 	public static ArrayList<Closure> computeClosure(ArrayList<FunctionalDependency> F){
 		Utils.sortFunctionalDependency(F);
 		ArrayList<Closure> F_Closure = new ArrayList<Closure>();
@@ -111,10 +116,22 @@ public class Closure{
 		return new ArrayList<>(F_Closure);
 	}
 
+	/** 
+	* Checks if two lists of Functional Dependencies are equivalent.
+	* @param E An ArrayList of Functional Dependency.
+	* @param F An ArrayList of Functional Dependency.
+	* @return A boolean value true or false.
+	*/
 	public static boolean equivalentClosures(ArrayList<FunctionalDependency> E, ArrayList<FunctionalDependency> F){
 		return (Closure.E_Covers_F(E, F) && Closure.E_Covers_F(F, E));
 	}
 
+	/** 
+	* Checks if one list of Functional Dependencies cover another list of Functional Dependencies.
+	* @param E An ArrayList of Functional Dependency.
+	* @param F An ArrayList of Functional Dependency.
+	* @return A boolean value true or false.
+	*/
 	private static boolean E_Covers_F(ArrayList<FunctionalDependency> E, ArrayList<FunctionalDependency> F){
 		for(FunctionalDependency f : F){
 			Closure c = Closure.computeClosure(f.getLeftSideAttributes(), E);
@@ -125,6 +142,10 @@ public class Closure{
 		return true;
 	}
 
+	/** 
+	* Tests the specified object with the left and right side lists 
+	* of attributes of the given functional dependency.
+	*/
 	public boolean equals(Object O){
 		Closure c = (Closure)O;
 		if((this.getLeftSide().equals(c.getLeftSide())) && (this.getRightSide().equals(c.getRightSide()))){
@@ -135,6 +156,9 @@ public class Closure{
 	}
 
 	///////////////////////// Printing Methods /////////////////////////
+	/** 
+	* @return An ArrayList of Attribute objects
+	*/
 	public String toString(){
 		String plus = ")+ = {";
 		String s = this.stringifyAttributes();
@@ -144,6 +168,11 @@ public class Closure{
 		StringTokenizer st = new StringTokenizer(s, ";");
 		return ("   > (" + st.nextToken() + plus + st.nextToken() + "}");
 	}
+
+	/** 
+	* Generates a string from two member variables separated by a semicolon
+	* @return A string
+	*/
 	private String stringifyAttributes(){
 		StringBuilder s = new StringBuilder();
 		// if(this.leftAttributes.isEmpty() && this.rightAttributes.isEmpty()){
@@ -164,9 +193,18 @@ public class Closure{
 	}
 
 	///////////////////////// Getter and Setter Methods /////////////////////////
+	/** 
+	* Returns the member variable leftAttrbutes
+	* @return An ArrayList of Attribute objects
+	*/
 	public ArrayList<Attribute> getLeftSide(){
 		return this.leftAttributes;
 	}
+
+	/** 
+	* Returns the member variable right Attributes
+	* @return An ArrayList of Attribute objects
+	*/
 	public ArrayList<Attribute> getRightSide(){
 		return this.rightAttributes;
 	}

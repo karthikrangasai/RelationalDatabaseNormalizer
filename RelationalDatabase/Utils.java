@@ -8,7 +8,12 @@ import java.util.*;
  * methods and operations like Sorting, Generating new objects etc.
  * @author Karthik Rangasai
  */
-public class Utils{
+final public class Utils{
+
+	private Utils() {
+		throw new RuntimeException("You should not instantiate this class");
+	}
+
 	/**
 	* <p>This method converts the numeric value used in the code to it's respective name for a Normal Form.</p>
 	* @param normalForm the integer value assigned to each NF from 1NF to 5NF

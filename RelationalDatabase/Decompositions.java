@@ -14,6 +14,7 @@ public class Decompositions{
 	// 	// System.out.println("\n  Decomposing Into 2NF Relations");
 	// 	if(relation.getNormalForm() < 2){
 	// 		ArrayList<Relation> twoNFRelations = new ArrayList<Relation>();
+	// 		Set<Attribute> relationAttributes = new HashSet<Attribute>(relation.getAttributes());
 	// 		Set<Attribute> attributes = new HashSet<Attribute>();
 	// 		ArrayList<FunctionalDependency> funcDeps = new ArrayList<FunctionalDependency>();
 	// 		Utils.generateFunctionalDependencies(relation.getFunctionalDependencies(), funcDeps);
@@ -70,16 +71,53 @@ public class Decompositions{
 	// 	return null;
 	// }
 
+
+	//////////////////////////////// Attempt 2 /////////////////////////////////////////
+	// public static ArrayList<Relation> decomposeInto2NFScheme(Relation relation){
+	// 	// System.out.println("\n  Decomposing Into 2NF Relations");
+	// 	if(relation.getNormalForm() < 2){
+	// 		Relation relationCopy = relation.getRelationCopy();
+
+	// 		ArrayList<Relation> twoNFRelations = new ArrayList<Relation>();
+	// 		Set<Attribute> relationAttributes = new HashSet<Attribute>(relation.getAttributes());
+			
+	// 		ArrayList<FunctionalDependency> funcDeps = relationCopy.getFunctionalDependencies();
+	// 		Iterator<FunctionalDependency> itr = funcDeps.iterator();
+	// 		while(itr.hasNext()){
+	// 			FunctionalDependency f = itr.next();
+	// 			if(f.getNormalForm() < 2){
+	// 				itr.remove();
+	// 				Set<Attribute> attributes = new HashSet<Attribute>();
+	// 				relationAttributes.removeAll(f.getLeftSideAttributes());
+	// 				relationAttributes.removeAll(f.getRightSideAttributes());
+	// 				attributes.addAll(f.getLeftSideAttributes());
+	// 				attributes.addAll(f.getRightSideAttributes());
+	// 				twoNFRelations.add(new Relation(attributes, f.getLeftSideAttributes(), f.getRightSideAttributes()));
+	// 			}
+	// 		}
+	// 		for(FunctionalDependency f : funcDeps){
+	// 			relationAttributes.addAll(f.getLeftSideAttributes());
+	// 			relationAttributes.addAll(f.getRightSideAttributes());
+	// 			// f.getRightSideAttributes().removeAll(fdRightSideAttributes);
+	// 		}
+	// 		twoNFRelations.add(new Relation(relationAttributes, funcDeps)); 
+	// 		return twoNFRelations;
+	// 	}
+	// 	return null;
+	// }
+
 	/** 
 	* Decomposes a relation to relation that will satisfy 2nd Normal Form
-	* @param relation A Relation Class object we wish to decompose.
+	* @param relation A Relation Class object we wish to decompose to 2NF.
 	* @return An ArrayList of Relation Objects whcih are in 2nd Normal Form or higher
 	*/
 	public static ArrayList<Relation> decomposeInto2NFScheme(Relation relation){
 		// System.out.println("\n->Decomposing Into 2NF Relations");
 		if(relation.getNormalForm() < 2){
 			ArrayList<FunctionalDependency> relationFDs = new ArrayList<FunctionalDependency>();
-			relationFDs.addAll(relation.getFunctionalDependencies());
+			relationFDs.addAll(relation.getMinimalCover());
+			// System.out.println("Relation FDs are: " + relationFDs + "\n");
+
 
 			ArrayList<Relation> twoNFRelations = new ArrayList<Relation>();
 
@@ -101,10 +139,14 @@ public class Decompositions{
 			while(itr1.hasNext()){
 				FunctionalDependency fd = itr1.next();
 				if(fd.getNormalForm() < 2){
-					Closure c = Closure.computeClosure(fd.getLeftSideAttributes(), relation.getFunctionalDependencies());
+					// System.out.println("fd = " + fd);
+					Closure c = Closure.computeClosure(fd.getLeftSideAttributes(), partialFuncDeps);
 					twoNFAttr.addAll(c.getRightSide());
 					twoNFFDs.add(fd);
-					for(Attribute a : relation.getNonKeyAttributes()){
+					// System.out.println("2NF FDs: " + twoNFFDs);
+					// System.out.println("I'm creating relation with attributes: " +twoNFAttr + " and FDs: " + twoNFFDs);
+					Relation rY = new Relation(twoNFAttr, new ArrayList<FunctionalDependency>(twoNFFDs));
+					for(Attribute a : rY.getNonKeyAttributes()){
 						if(c.getRightSide().contains(a)){
 							fullFDAttributes.remove(a);
 						}
@@ -112,20 +154,45 @@ public class Decompositions{
 					Iterator<FunctionalDependency> itr2 = partialFuncDeps.iterator();
 					while(itr2.hasNext()){
 						FunctionalDependency f = itr2.next();
+						// System.out.println("f = " + f);
 						if(!fd.equals(f) && c.getRightSide().containsAll(f.getLeftSideAttributes())){
-							twoNFFDs.add(f);
-							partialFuncDeps.remove(f);
+							// Set<Attribute> closureR = new HashSet<Attribute>(c.getRightSide());
+							// System.out.println("Clousre R: " + closureR);
+							// System.out.println("FD L: " + f.getLeftSideAttributes());
+							// closureR.retainAll(f.getLeftSideAttributes());
+							// System.out.println("Clousre R After Rmoving: " + closureR);
+							// if(closureR.isEmpty()){
+								twoNFFDs.add(f);
+								partialFuncDeps.remove(f);
+								// System.out.println("2NF FDs: " + twoNFFDs);
+							// }
 						}
 					}
+					// System.out.println("I'm creating relation with attributes: " +twoNFAttr + " and FDs: " + twoNFFDs);
 					twoNFRelations.add(new Relation(twoNFAttr, new ArrayList<FunctionalDependency>(twoNFFDs)));
 					// twoNFRelations.add(new Relation(twoNFAttr, twoNFFDs));
 					partialFuncDeps.removeAll(twoNFFDs);
+					// System.out.println(twoNFFDs + "	Before removing from remaltionFDs " +  relationFDs);
 					relationFDs.removeAll(twoNFFDs);
+					// System.out.println(twoNFFDs + "	After removing from remaltionFDs " +  relationFDs);
 				}
 				twoNFAttr.clear();
 				twoNFFDs.clear();
 			}
+
 			if(!fullFDAttributes.isEmpty()){
+				// System.out.println("I'm creating relation with attributes: " +fullFDAttributes + " and FDs: " + relationFDs);
+				Iterator<FunctionalDependency> itr = relationFDs.iterator();
+				while(itr.hasNext()){
+					FunctionalDependency f = itr.next();
+					// if(!fullFDAttributes.containsAll(f.getLeftSideAttributes()) && !fullFDAttributes.containsAll(f.getRightSideAttributes())){
+					// 	itr.remove();
+					// }
+					fullFDAttributes.addAll(f.getLeftSideAttributes());
+					fullFDAttributes.addAll(f.getRightSideAttributes());
+					// f.getRightSideAttributes().removeAll(fdRightSideAttributes);
+				}
+				// System.out.println("I'm creating relation with attributes: " +fullFDAttributes + " and FDs: " + relationFDs);
 				twoNFRelations.add(new Relation(fullFDAttributes, new ArrayList<FunctionalDependency>(relationFDs)));
 			}
 			return twoNFRelations;
@@ -135,7 +202,7 @@ public class Decompositions{
 
 	/** 
 	* Decomposes a relation to relation that will satisfy 3rd Normal Form
-	* @param relation A Relation Class object we wish to decompose.
+	* @param relation A Relation Class object we wish to decompose to 3NF.
 	* @return An ArrayList of Relation Objects whcih are in 3rd Normal Form or higher
 	*/
 	public static ArrayList<Relation> decomposeInto3NFScheme(Relation relation){
@@ -186,6 +253,25 @@ public class Decompositions{
 		}
 		return threeNFRelations;
 	}
+
+
+	// public ArrayList<Relation> decompose2NFInto3NFScheme(Relation mainRelation, Relation twoNFRelation){
+	// 	Relation relationCopy = mainRelation.getRelationCopy();
+	// 	ArrayList<Relation> twoNFRelations = mainRelation.get2NFRelations();
+	// 	ArrayList<Relation> threeNFRelations = new ArrayList<Relation>();
+	// 	Set<Attribute> relationAttributes = new HashSet<Attribute>(mainRelation.getAttributes());
+
+	// 	for(Relation r : twoNFRelations){
+	// 		if(!(r.getNormalForm() >= 3)){
+	// 			for(FunctionalDependency f : r.getFunctionalDependencies()){
+	// 				int normalForm = 
+	// 			}
+	// 		} else {
+	// 			threeNFRelations.add(r);
+	// 		}
+	// 	}
+	// 	ArrayList<FunctionalDependency> funcDeps = relationCopy.getFunctionalDependencies();
+	// }
 
 	// public static ArrayList<Relation> decomposeIntoBCNFScheme(Relation relation){
 	// 	ArrayList<Relation> bcNFRelations = new ArrayList<Relation>();
@@ -258,7 +344,7 @@ public class Decompositions{
 
 	/** 
 	* Decomposes a relation to relation that will satisfy Boyce-Codd Normal Form
-	* @param relation A Relation Class object we wish to decompose.
+	* @param relation A Relation Class object we wish to decompose to BCNF.
 	* @return An ArrayList of Relation Objects whcih are in Boyce-Codd Normal Form or higher
 	*/
 	public static ArrayList<Relation> decomposeIntoBCNFScheme(Relation relation){

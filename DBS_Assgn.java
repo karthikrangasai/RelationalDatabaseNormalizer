@@ -5,6 +5,10 @@ import java.util.*;
 class DBS_Assgn {
 	public static void main(String[] args){
 
+		// DBS GROUP EXAMPLES
+		// String relation = "R(A,B,C,D)";
+		// String funcDep = "A->B,C,D;B,C->A,D;D->B";
+
 		// String relation = "R(A,C)";
 		// String funcDep = "C->A";
 
@@ -15,7 +19,7 @@ class DBS_Assgn {
 
 		// String relation = "R(A,B,C,D)";
 		// String funcDep = "A,B->C;A,B->D;C->B;B->D";
-		// String funcDep = "B->A;D->A;A,B->D";
+		// String funcDep = "B->A;D->A;A,B->D"; // FLAG - Final Relation should have C
 		// String funcDep = "A,B->C,D;C->B;B->D";
 
 		// String relation = "R(A,B,C,D,E)";
@@ -27,18 +31,12 @@ class DBS_Assgn {
 		// String relation = "R(A,B,C,D,E,F)";
 		// String funcDep = "A,B->C;C->A;D,C->B;A,C,D->B;D->E,F;B,E->C";
 
-		// String relation = "R(A,B,C,D,E)";
-		// String funcDep = "A,B->C,D,E;A->C;B->D;C->E";
-
-		// String relation = "R(A,C,L,P)";
-		// String funcDep = "P->A,C,L;L,C->A,P;A->C";
-
-		// String relation = "R(A,B,C)";
-		// String funcDep = "A,B->C;C->B";
+		// String relation = "R(P,C,L,A,Q,T)";
+		// String funcDep = "P->C,L,A,Q,T;C,L->P,A,Q,T;C->T;A->Q";
 
 		// ///// Example 0
-		String relation = "R(A,B,C,D,E)";
-		String funcDep = "A,B->C,D;B->E;C->B";
+		// String relation = "R(A,B,C,D,E)";
+		// String funcDep = "A,B->C,D;B->E;C->B";
 		// ///// Example 1
 		// String relation = "R(A,B,C,D,E)";
 		// String funcDep = "A,B->C,D,E;A->C;B->D;C->E";
@@ -51,7 +49,42 @@ class DBS_Assgn {
 		// ///// Example 4
 		// String relation = "R(A,B,C,D,E,F)";
 		// String funcDep = "A,D->B,C,F;B->E;E->F";
+		// String funcDep = "B,F->D;C,D->F;A,B,C->D;A,B,D->E;C,D,F->B";
 		
+		// SNIPER Examples
+		// String relation = "R(A,B,C,D)";
+		// String funcDep = "A->B;B->C;C->D;D->A";
+
+		// MYTHREYI Examples
+		// String relation = "R(A,B,C,D,E,F,G,H,I,J)";
+		// String funcDep = "A,B->C;A->D,E;B->F;F->G,H;D->I,J";
+
+		//////// PS EXAMPLES
+		// Eg 1
+		// String relation = "R(A,B,C,D,E,F,G,H,I,J)";
+		// String funcDep = "A,B->C;A,D->G,H;B,D->E,F;A->I;H->J";
+
+		// Eg 2
+		// String relation = "R(A,B,C,D,E)";
+		// String funcDep = "A->B;B->E;C->D";
+
+		// Eg 3
+		// String relation = "R(A,B,C,D,E)";
+		// String funcDep = "A,B->C;D->E";
+
+		// Eg 4
+		// String relation = "R(A,B,C,D)";
+		// String funcDep = "A->B,C,D;B,C->A,D;D->B";
+
+		// Eg 5
+		// String relation = "R(A,B,C,D,E,F)";
+		// String funcDep = "A->B,C,D,E,F;B,C->A,D,E,F;D,E,F->A,B,C";
+
+		// Eg 6
+		// String relation = "R(A,B,C,D,E)";
+		// String funcDep = "A->B;B,C->E;D,E->A";
+
+
 		// String relation = args[0];
 		// String funcDep = args[1]; 
 
@@ -90,8 +123,15 @@ class DBS_Assgn {
 		System.out.println("\n*) Minimal Cover of the relation is:");
 		System.out.print("	");R.printMinimalCover();
 
+		System.out.println("\n*) Partial FDs of the relation is:");
+		System.out.println("	" + R.getPartialFunctionalDependencies());
+
+		System.out.println("\n*) Full FDs of the relation is:");
+		System.out.println("	" + R.getFullFunctionalDependencies());
+
 		System.out.println("\n*) Decomposing the relation until BCNF:");
-		R.normalizeRelation();
+		R.normalizeRelationByOneLevel();
+		// R.normalizeRelation();
 
 		
 		
