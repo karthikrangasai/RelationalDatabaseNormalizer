@@ -171,8 +171,9 @@ public class Relation {
 		this.computeSuperKeys();
 		this.computeCandiadteKey();
 		// System.out.println(this.candidate_key);
-		this.computeNormalForm();
 		this.computeMinimalCover();
+		this.computeFDsNF();
+		this.computeNormalForm();
 		this.separateFDs();
                 //this.normalizeRelationByOneLevel();
 	}
@@ -233,8 +234,9 @@ public class Relation {
 		this.computeClosures();
 		this.computeSuperKeys();
 		this.computeCandiadteKey();
-		this.computeNormalForm();
 		this.computeMinimalCover();
+		this.computeFDsNF();
+		this.computeNormalForm();
 	}
 
 	/** 
@@ -278,8 +280,9 @@ public class Relation {
 			this.computeClosures();
 			this.computeSuperKeys();
 			this.computeCandiadteKey();
-			this.computeNormalForm();
 			this.computeMinimalCover();
+			this.computeFDsNF()
+			this.computeNormalForm();
 		} else {
 			this.funcDeps = null;
 
@@ -613,6 +616,12 @@ public class Relation {
 		// System.out.println("\n\n        Final Minimal Cover: " + this.minimalCover);
 	}
 
+	public void computeFDsNF(){
+		for(FunctionalDependency f : this.funcDeps){
+			f.computeNormalForm(this.keyAttributes, this.nonKeyAttributes, this.candidate_key);
+		}
+	}
+
 	/**
 	* Computes the Full and Partial Functional Dependencies of the relation.
 	*/
@@ -687,6 +696,7 @@ public class Relation {
 					System.out.println("	Relation: " + r);
 					System.out.println("	Functional Dependencies: " + r.getFunctionalDependencies());
 					System.out.println("	Candidate Key(s): " + r.getCandidateKeys());
+					System.out.println("	Normal Form: " + Utils.getNormalForm(r.getNormalForm()) + "NF");
 					System.out.println("");
 					// System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + r.getNormalForm() + "NF" + " with Candidate Keys " + r.getCandidateKeys());
 				}
@@ -700,6 +710,7 @@ public class Relation {
 					System.out.println("	Relation: " + r);
 					System.out.println("	Functional Dependencies: " + r.getFunctionalDependencies());
 					System.out.println("	Candidate Key(s): " + r.getCandidateKeys());
+					System.out.println("	Normal Form: " + Utils.getNormalForm(r.getNormalForm()) + "NF");
 					System.out.println("");
 					// System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + r.getNormalForm() + "NF" + " with Candidate Keys " + r.getCandidateKeys());
 				}
@@ -713,6 +724,7 @@ public class Relation {
 					System.out.println("	Relation: " + r);
 					System.out.println("	Functional Dependencies: " + r.getFunctionalDependencies());
 					System.out.println("	Candidate Key(s): " + r.getCandidateKeys());
+					System.out.println("	Normal Form: " + Utils.getNormalForm(r.getNormalForm()) + "NF");
 					System.out.println("");
 					// System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + r.getNormalForm() + "NF" + " with Candidate Keys " + r.getCandidateKeys());
 				}
@@ -732,7 +744,7 @@ public class Relation {
 			if(this.twoNFRelations != null){
 				for(Relation r : this.twoNFRelations){
 					// ArrayList<FunctionalDependency> f = r.getFunctionalDependencies();
-					System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + r.getNormalForm() + "NF" + " with Candidate Keys " + r.getCandidateKeys());
+					System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + Utils.getNormalForm(r.getNormalForm()) + "NF" + " with Candidate Keys " + r.getCandidateKeys());
 					System.out.println(r.getMinimalCover());;
 				}
 				System.out.println("");	
@@ -742,7 +754,7 @@ public class Relation {
 			if(this.threeNFRelations != null){
 				for(Relation r : this.threeNFRelations){
 					// ArrayList<FunctionalDependency> f = r.getFunctionalDependencies();
-					System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + r.getNormalForm() + "NF" + " with Candidate Keys " + r.getCandidateKeys());
+					System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + Utils.getNormalForm(r.getNormalForm()) + "NF" + " with Candidate Keys " + r.getCandidateKeys());
 				}
 				System.out.println("");	
 			}
@@ -751,7 +763,7 @@ public class Relation {
 			if(this.bcNFRelations != null){
 				for(Relation r : this.bcNFRelations){
 					// ArrayList<FunctionalDependency> f = r.getFunctionalDependencies();
-					System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + r.getNormalForm() + "NF" + " with Candidate Keys " + r.getCandidateKeys());
+					System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + Utils.getNormalForm(r.getNormalForm()) + "NF" + " with Candidate Keys " + r.getCandidateKeys());
 				}
 				System.out.println("");	
 			}
@@ -760,7 +772,7 @@ public class Relation {
 			if(this.threeNFRelations != null){
 				for(Relation r : this.threeNFRelations){
 					// ArrayList<FunctionalDependency> f = r.getFunctionalDependencies();
-					System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + r.getNormalForm() + "NF" + " with Candidate Keys " + r.getCandidateKeys());
+					System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + Utils.getNormalForm(r.getNormalForm()) + "NF" + " with Candidate Keys " + r.getCandidateKeys());
 				}
 				System.out.println("");	
 			}
@@ -769,7 +781,7 @@ public class Relation {
 			if(this.bcNFRelations != null){
 				for(Relation r : this.bcNFRelations){
 					// ArrayList<FunctionalDependency> f = r.getFunctionalDependencies();
-					System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + r.getNormalForm() + "NF" + " with Candidate Keys " + r.getCandidateKeys());
+					System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + Utils.getNormalForm(r.getNormalForm()) + "NF" + " with Candidate Keys " + r.getCandidateKeys());
 				}
 				System.out.println("");	
 			}
@@ -778,7 +790,7 @@ public class Relation {
 			if(this.bcNFRelations != null){
 				for(Relation r : this.bcNFRelations){
 					// ArrayList<FunctionalDependency> f = r.getFunctionalDependencies();
-					System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + r.getNormalForm() + "NF" + " with Candidate Keys " + r.getCandidateKeys());
+					System.out.println(r + " with FDs " + r.getFunctionalDependencies() + " in the " + Utils.getNormalForm(r.getNormalForm()) + "NF" + " with Candidate Keys " + r.getCandidateKeys());
 				}
 				System.out.println("");	
 			}

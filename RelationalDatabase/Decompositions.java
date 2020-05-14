@@ -132,6 +132,10 @@ public class Decompositions{
 				fullFDAttributes.addAll(f.getRightSideAttributes());
 			}
 
+			for(ArrayList<Attribute> key : relation.getCandidateKeys()){
+				fullFDAttributes.addAll(key);
+			}
+
 			Set<Attribute> twoNFAttr = new HashSet<Attribute>();
 			ArrayList<FunctionalDependency> twoNFFDs = new ArrayList<FunctionalDependency>();
 
@@ -213,27 +217,57 @@ public class Decompositions{
 		Set<Attribute> attributes = new HashSet<Attribute>();
 		ArrayList<FunctionalDependency> minimalCover = new ArrayList<FunctionalDependency>();
 		Utils.generateFunctionalDependencies(relation.getMinimalCover(), minimalCover);
-		
+		for(int i=0; i<minimalCover.size(); i++){
+			FunctionalDependency f = minimalCover.get(i);
+			// System.out.println("        For: " + f);
+			for(int j=0; j<minimalCover.size(); j++){
+				FunctionalDependency g = minimalCover.get(j);
+				// System.out.println("            Checking: " + g);
+				if(!f.equals(g) && f.getLeftSideAttributes().equals(g.getLeftSideAttributes())){
+					for(Attribute a : g.getRightSideAttributes()){
+						if(!f.getRightSideAttributes().contains(a)){
+							f.getRightSideAttributes().add(a);
+						}
+					}
+					// System.out.println("            Removing " + g);
+					minimalCover.remove(g);
+				}
+				
+			}
+			Utils.sortAttributes(f.getLeftSideAttributes());
+			Utils.sortAttributes(f.getRightSideAttributes());
+		}
+
 		Iterator<FunctionalDependency> itr = minimalCover.iterator();
 		while(itr.hasNext()){
 			FunctionalDependency f = itr.next();
 			// System.out.println(f);
-			// if(!(f.getNormalForm() >= 3)){
-				finsihedAttributes.addAll(f.getLeftSideAttributes());
+			if(!(f.getNormalForm() >= 3)){
+				// finsihedAttributes.addAll(f.getLeftSideAttributes());
 				finsihedAttributes.addAll(f.getRightSideAttributes());
 				attributes.addAll(f.getLeftSideAttributes());
 				attributes.addAll(f.getRightSideAttributes());
 				threeNFRelations.add(new Relation(attributes, f.getLeftSideAttributes(), f.getRightSideAttributes()));
 				itr.remove();
 				attributes.clear();
-			// }
+				// minimalCover.remove(f);
+			}
 		}
-		// System.out.println("Jabez is useless");
 		relationAttributes.removeAll(finsihedAttributes);
 		if(!relationAttributes.isEmpty()){
-			threeNFRelations.add(new Relation(relationAttributes, new ArrayList<Attribute>(relationAttributes), new ArrayList<Attribute>(relationAttributes)));
+			Iterator<FunctionalDependency> itr = minimalCover.iterator();
+				while(itr.hasNext()){
+					FunctionalDependency f = itr.next();
+					// if(!fullFDAttributes.containsAll(f.getLeftSideAttributes()) && !fullFDAttributes.containsAll(f.getRightSideAttributes())){
+					// 	itr.remove();
+					// }
+					relationAttributes.addAll(f.getLeftSideAttributes());
+					relationAttributes.addAll(f.getRightSideAttributes());
+					// f.getRightSideAttributes().removeAll(fdRightSideAttributes);
+				}
+			// threeNFRelations.add(new Relation(relationAttributes, new ArrayList<Attribute>(relationAttributes), new ArrayList<Attribute>(relationAttributes)));
+			threeNFRelations.add(new Relation(relationAttributes, minimalCover));
 		}
-		// System.out.println("Jabez is useless");
 		ArrayList<ArrayList<Attribute>> candidate_key = relation.getCandidateKeys();
 		boolean exists = false;
 		for(ArrayList<Attribute> key : candidate_key){
@@ -361,6 +395,7 @@ public class Decompositions{
 				ArrayList<FunctionalDependency> funcDeps = new ArrayList<FunctionalDependency>();
 				Utils.generateFunctionalDependencies(r.getFunctionalDependencies(), funcDeps);
 				Iterator<FunctionalDependency> itrFD = funcDeps.iterator();
+				Set<Attribute> fdRightSideDustBin = new HashSet<Attribute>();
 				while(itrFD.hasNext()){
 					FunctionalDependency fd = itrFD.next();
 					if(!fd.inBCNF()){
@@ -368,24 +403,40 @@ public class Decompositions{
 						Set<Attribute> relationOneAttributes = new HashSet<Attribute>();
 						relationOneAttributes.addAll(fd.getLeftSideAttributes());
 						relationOneAttributes.addAll(fd.getRightSideAttributes());
+						fdRightSideDustBin.addAll(fd.getRightSideAttributes());
 						bcNFRelations.add(new Relation(relationOneAttributes, fd.getLeftSideAttributes(), fd.getRightSideAttributes()));
 						itrFD.remove();
-						// Relation - R - Y
-						Set<Attribute> relationTwoAttributes = new HashSet<Attribute>(r.getAttributes());
-						relationTwoAttributes.removeAll(fd.getRightSideAttributes());
-						ArrayList<FunctionalDependency> funcDepsTwo = null;
-						for(FunctionalDependency f : funcDeps){
-							if(f.hasAttributes(relationTwoAttributes)){
+						// 
+					}
+				}
+				// Relation - R - Y
+				Set<Attribute> relationTwoAttributes = new HashSet<Attribute>(r.getAttributes());
+				relationTwoAttributes.removeAll(fdRightSideDustBin);
+				ArrayList<FunctionalDependency> funcDepsTwo = null;
+				if(!funcDeps.isEmpty()){
+					for(FunctionalDependency f : funcDeps){
+						// if(f.hasAttributes(relationTwoAttributes)){
+						// if(relationTwoAttributes.containsAll(f.getLeftSideAttributes()) && relationTwoAttributes.containsAll(f.getRightSideAttributes())){
+						if(relationTwoAttributes.containsAll(f.getLeftSideAttributes())){
+							f.getRightSideAttributes().retainAll(relationTwoAttributes);
+							if(!f.getRightSideAttributes().isEmpty()){
 								if(funcDepsTwo == null){
 									funcDepsTwo = new ArrayList<FunctionalDependency>();
 									funcDepsTwo.add(f);
+								} else {
+									funcDepsTwo.add(f);
 								}
-								funcDepsTwo.add(f);
 							}
 						}
-						bcNFRelations.add(new Relation(relationTwoAttributes, funcDepsTwo));
 					}
+					bcNFRelations.add(new Relation(relationTwoAttributes, funcDepsTwo));
+				} else {
+					bcNFRelations.add(new Relation(relationTwoAttributes, funcDepsTwo));
 				}
+
+				// 		bcNFRelations.add(new Relation(relationTwoAttributes, funcDepsTwo));
+				// 	}
+				// }
 			}
 			bcNFRelations.removeAll(relationDustbin);
 		}

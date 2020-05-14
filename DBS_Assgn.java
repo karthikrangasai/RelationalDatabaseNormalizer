@@ -81,8 +81,8 @@ class DBS_Assgn {
 		// String funcDep = "A->B,C,D,E,F;B,C->A,D,E,F;D,E,F->A,B,C";
 
 		// Eg 6
-		// String relation = "R(A,B,C,D,E)";
-		// String funcDep = "A->B;B,C->E;D,E->A";
+		String relation = "R(A,B,C,D,E)";
+		String funcDep = "A->B;B,C->E;D,E->A";
 
 
 		// String relation = args[0];

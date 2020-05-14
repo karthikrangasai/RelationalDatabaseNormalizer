@@ -11,5 +11,3 @@
 * 
 
 ## To Be Added:
-* Stupid Attributes removal in starting and adding in ending
-* 4NF -> BCNF Printing
